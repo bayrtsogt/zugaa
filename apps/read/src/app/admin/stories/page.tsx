@@ -1,17 +1,19 @@
 import Link from "next/link";
-import { buttonClass } from "@zugaa/ui";
+import { Notice, buttonClass } from "@zugaa/ui";
+import { StoryTable } from "./story-table";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { ageLabel, genreLabel } from "@/lib/labels";
 
 export const metadata = { title: "Өгүүллэг" };
 
-export default async function AdminStories() {
+export default async function AdminStories({ searchParams }: { searchParams: Promise<{ msg?: string }> }) {
+  const msg = (await searchParams).msg?.slice(0, 300);
   await requireAdmin();
   const supabase = await createClient();
-  const { data: stories } = await supabase
+  const { data: stories, error } = await supabase
     .from("stories")
-    .select("id, title, slug, status, genre, age_rating, created_at, chapters(count)")
+    .select("id, title, slug, status, genre, age_rating, created_at, chapters(id)")
     .order("created_at", { ascending: false });
 
   return (
@@ -27,26 +29,19 @@ export default async function AdminStories() {
           </Link>
         </div>
       </div>
+      {msg ? <Notice>{msg}</Notice> : null}
+      {error ? <Notice tone="accent">Жагсаалтыг ачаалж чадсангүй: {error.message}</Notice> : null}
       {(stories ?? []).length === 0 ? (
         <p className="text-muted">Өгүүллэг алга.</p>
       ) : (
-        <ul className="divide-y divide-line border-y border-line">
-          {stories!.map((s) => (
-            <li key={s.id}>
-              <Link href={`/admin/stories/${s.id}`} className="flex min-h-14 items-center justify-between gap-4 py-3 hover:text-accent">
-                <span className="min-w-0">
-                  <span className="block truncate font-serif text-lg">{s.title}</span>
-                  <span className="block text-sm text-muted">
-                    {genreLabel(s.genre)} · {ageLabel(s.age_rating)} · {s.chapters[0]?.count ?? 0} бүлэг
-                  </span>
-                </span>
-                <span className={s.status === "published" ? "text-sm text-ok" : "text-sm text-muted"}>
-                  {s.status === "published" ? "Нийтлэгдсэн" : "Ноорог"}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <StoryTable
+          rows={stories!.map((s) => ({
+            id: s.id,
+            title: s.title,
+            status: s.status,
+            meta: `${genreLabel(s.genre)} · ${ageLabel(s.age_rating)} · ${s.chapters.length} бүлэг`,
+          }))}
+        />
       )}
     </div>
   );

@@ -73,11 +73,76 @@ export async function setStoryStatus(form: FormData) {
   revalidatePath("/admin/stories");
 }
 
+export type BulkResult = { ok?: string; error?: string };
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Deletes stories (chapters, choices, unlocks and progress cascade). A story
+ * whose bank-purchase product has payment history cannot be deleted — that
+ * history must stay — so it is unpublished (hidden from readers) instead.
+ */
+async function removeStories(ids: string[]): Promise<{ deleted: string[]; hidden: string[]; failed: string[] }> {
+  const supabase = await createClient();
+  const out = { deleted: [] as string[], hidden: [] as string[], failed: [] as string[] };
+  for (const id of ids.filter((x) => UUID_RE.test(x))) {
+    const { data: story } = await supabase.from("stories").select("title").eq("id", id).maybeSingle();
+    if (!story) continue;
+    const { error } = await supabase.from("stories").delete().eq("id", id);
+    if (!error) {
+      out.deleted.push(story.title);
+    } else if (error.code === "23503") {
+      await supabase.from("stories").update({ status: "draft" }).eq("id", id);
+      await supabase.from("products").update({ active: false }).eq("story_id", id);
+      out.hidden.push(story.title);
+    } else {
+      out.failed.push(story.title);
+    }
+  }
+  return out;
+}
+
+function summary(r: { deleted: string[]; hidden: string[]; failed: string[] }): BulkResult {
+  const parts = [];
+  if (r.deleted.length) parts.push(`${r.deleted.length} өгүүллэг устгагдлаа.`);
+  if (r.hidden.length) parts.push(`Төлбөрийн түүхтэй тул устгаагүй, нуусан: ${r.hidden.join(", ")}.`);
+  if (r.failed.length) return { error: `${parts.join(" ")} Устгаж чадсангүй: ${r.failed.join(", ")}.`.trim() };
+  return { ok: parts.join(" ") || "Өөрчлөлт алга." };
+}
+
 export async function deleteStory(form: FormData) {
   await assertAdmin();
-  const supabase = await createClient();
-  await supabase.from("stories").delete().eq("id", str(form, "id"));
-  redirect("/admin/stories");
+  const r = await removeStories([str(form, "id")]);
+  revalidatePath("/admin/stories");
+  revalidatePath("/");
+  const msg = summary(r);
+  redirect(`/admin/stories?msg=${encodeURIComponent(msg.error ?? msg.ok ?? "")}`);
+}
+
+export async function bulkStories(_prev: BulkResult, form: FormData): Promise<BulkResult> {
+  await assertAdmin();
+  const ids = form.getAll("ids").map(String);
+  if (ids.length === 0) return { error: "Өгүүллэг сонгоно уу." };
+  const action = str(form, "bulk");
+  if (action === "delete") {
+    if (str(form, "confirm") !== "УСТГАХ") return { error: "Баталгаажуулахын тулд УСТГАХ гэж бичнэ үү." };
+    const r = await removeStories(ids);
+    revalidatePath("/admin/stories");
+    revalidatePath("/");
+    return summary(r);
+  }
+  if (action === "hide" || action === "publish") {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("stories")
+      .update({ status: action === "hide" ? "draft" : "published" })
+      .in("id", ids.filter((x) => UUID_RE.test(x)));
+    revalidatePath("/admin/stories");
+    revalidatePath("/");
+    if (error) return { error: "Хадгалж чадсангүй." };
+    return { ok: action === "hide" ? `${ids.length} өгүүллэгийг нуулаа (ноорог).` : `${ids.length} өгүүллэгийг нийтэллээ.` };
+  }
+  return { error: "Үйлдэл сонгоно уу." };
 }
 
 /* ----------------------------------------------------------------- chapters */

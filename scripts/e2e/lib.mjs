@@ -48,5 +48,5 @@ import { execFileSync } from "node:child_process";
 export const DB_URL = process.env.DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 /** Runs SQL against the local database (test setup/inspection only). */
 export function sql(query) {
-  return execFileSync("psql", [DB_URL, "-Atc", query], { encoding: "utf8" }).trim();
+  return execFileSync("psql", [DB_URL, "-qAtc", query], { encoding: "utf8" }).trim();
 }
