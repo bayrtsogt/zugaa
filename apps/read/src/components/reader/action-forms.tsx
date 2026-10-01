@@ -77,7 +77,7 @@ export function PurchaseForm({
   );
 }
 
-export function BirthYearForm({ next }: { next: string }) {
+export function BirthYearForm({ next, submitLabel = "Үргэлжлүүлэх" }: { next: string; submitLabel?: string }) {
   const [state, action] = useActionState<FormState, FormData>(setBirthYear, {});
   return (
     <form action={action} className="space-y-3">
@@ -106,7 +106,7 @@ export function BirthYearForm({ next }: { next: string }) {
         </p>
       ) : null}
       <Submit variant="primary" pendingText="Хадгалж байна…">
-        Үргэлжлүүлэх
+        {submitLabel}
       </Submit>
     </form>
   );

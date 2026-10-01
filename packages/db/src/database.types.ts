@@ -627,6 +627,7 @@ export type Database = {
           story_slug: string;
           story_title: string;
           title: string;
+          wait_free_available: boolean;
           wait_free_ends_at: string;
           wait_free_hours: number;
           wait_free_other_chapter: number;
@@ -651,6 +652,7 @@ export type Database = {
           story_slug: string;
           story_title: string;
           title: string;
+          wait_free_available: boolean;
           wait_free_ends_at: string;
           wait_free_hours: number;
           wait_free_other_chapter: number;
@@ -678,6 +680,7 @@ export type Database = {
       };
       save_reading_progress: { Args: { p_chapter_id: string; p_scroll_pct: number }; Returns: undefined };
       set_payment_reject_reason: { Args: { p_reason: string; p_request_id: string }; Returns: boolean };
+      start_wait_free: { Args: { p_chapter_id: string }; Returns: string };
       submit_payment_request: { Args: { p_request_id: string }; Returns: Json };
       unlock_chapter: { Args: { p_chapter_id: string }; Returns: Json };
       unlock_story: { Args: { p_story_id: string }; Returns: Json };

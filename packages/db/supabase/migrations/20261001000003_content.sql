@@ -278,7 +278,8 @@ as $$
   end;
 $$;
 
--- The only way chapter text leaves the database.
+-- The only way chapter text leaves the database. Read-only: it never starts
+-- timers or writes anything, so link prefetches have no side effects.
 create function public.get_chapter(p_chapter_id uuid)
 returns table (
   id uuid,
@@ -299,10 +300,11 @@ returns table (
   choices jsonb,
   wait_free_hours int,
   wait_free_ends_at timestamptz,
-  wait_free_other_chapter int
+  wait_free_other_chapter int,
+  wait_free_available boolean
 )
 language plpgsql
-volatile
+stable
 security definer
 set search_path = ''
 as $$
@@ -324,7 +326,7 @@ begin
   id := c.id; story_id := s.id; story_slug := s.slug; story_title := s.title;
   story_price_coins := s.price_coins; number := c.number; title := c.title;
   is_free := c.is_free; price_coins := c.price_coins; is_ending := c.is_ending;
-  wait_free_hours := s.wait_free_hours;
+  wait_free_hours := s.wait_free_hours; wait_free_available := false;
 
   select max(x.number) into prev_number from public.chapters x
    where x.story_id = s.id and x.number < c.number and (v_admin or x.published_at <= now());
@@ -338,37 +340,17 @@ begin
     return next; return;
   end if;
 
-  -- Wait-free bookkeeping (signed-in users, stories with a timer, paid chapters).
-  if v_uid is not null and s.wait_free_hours is not null and not c.is_free then
-    select * into t from public.wait_free_timers w where w.user_id = v_uid and w.story_id = s.id;
-    if found then
-      if t.started_at + make_interval(hours => s.wait_free_hours) <= now() then
-        -- Elapsed: turn it into a permanent unlock and free the slot.
-        insert into public.unlocks (user_id, story_id, chapter_id, method)
-        values (v_uid, s.id, t.chapter_id, 'wait_free') on conflict do nothing;
-        delete from public.wait_free_timers w where w.user_id = v_uid and w.story_id = s.id;
-        t := null;
-      elsif exists (select 1 from public.unlocks u where u.user_id = v_uid and u.chapter_id = t.chapter_id) then
-        -- Timer's chapter was bought meanwhile: release the slot.
-        delete from public.wait_free_timers w where w.user_id = v_uid and w.story_id = s.id;
-        t := null;
-      end if;
-    end if;
-  end if;
-
   v_access := v_admin or public.has_access(v_uid, c.id);
 
   if not v_access and v_uid is not null and s.wait_free_hours is not null then
-    if t.chapter_id is null then
-      insert into public.wait_free_timers (user_id, story_id, chapter_id)
-      values (v_uid, s.id, c.id)
-      on conflict (user_id, story_id) do nothing
-      returning * into t;
-    end if;
+    select * into t from public.wait_free_timers w where w.user_id = v_uid and w.story_id = s.id;
     if t.chapter_id = c.id then
       wait_free_ends_at := t.started_at + make_interval(hours => s.wait_free_hours);
-    elsif t.chapter_id is not null then
+    elsif t.chapter_id is not null and not public.has_access(v_uid, t.chapter_id) then
+      -- Another chapter's timer is still running.
       select x.number into wait_free_other_chapter from public.chapters x where x.id = t.chapter_id;
+    else
+      wait_free_available := true;
     end if;
   end if;
 
@@ -392,6 +374,64 @@ begin
 end;
 $$;
 grant execute on function public.get_chapter(uuid) to anon, authenticated;
+
+-- Starts the wait-free timer for a locked chapter the reader is looking at.
+-- Called by the lock screen after it is actually displayed. One running timer
+-- per user per story; an elapsed timer becomes a permanent unlock first.
+create function public.start_wait_free(p_chapter_id uuid)
+returns timestamptz
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+  c public.chapters%rowtype;
+  s public.stories%rowtype;
+  t public.wait_free_timers%rowtype;
+begin
+  if v_uid is null then
+    raise exception 'not_authenticated' using errcode = '28000';
+  end if;
+  select * into c from public.chapters ch where ch.id = p_chapter_id;
+  if not found or not private.chapter_visible(c.id) then
+    raise exception 'not_found' using errcode = 'P0002';
+  end if;
+  select * into s from public.stories st where st.id = c.story_id;
+  if s.wait_free_hours is null or c.is_free or private.age_gate(v_uid, s.age_rating) is not null then
+    return null;
+  end if;
+
+  perform private.lock_wallet(v_uid); -- serialise per user
+
+  select * into t from public.wait_free_timers w where w.user_id = v_uid and w.story_id = s.id;
+  if found then
+    if t.started_at + make_interval(hours => s.wait_free_hours) <= now() then
+      insert into public.unlocks (user_id, story_id, chapter_id, method)
+      values (v_uid, s.id, t.chapter_id, 'wait_free') on conflict do nothing;
+      delete from public.wait_free_timers w where w.user_id = v_uid and w.story_id = s.id;
+    elsif exists (select 1 from public.unlocks u
+                   where u.user_id = v_uid
+                     and (u.chapter_id = t.chapter_id or (u.story_id = s.id and u.chapter_id is null))) then
+      delete from public.wait_free_timers w where w.user_id = v_uid and w.story_id = s.id;
+    elsif t.chapter_id = c.id then
+      return t.started_at + make_interval(hours => s.wait_free_hours);
+    else
+      return null; -- another chapter's timer is running
+    end if;
+  end if;
+
+  if public.has_access(v_uid, c.id) then
+    return null;
+  end if;
+
+  insert into public.wait_free_timers (user_id, story_id, chapter_id)
+  values (v_uid, s.id, c.id)
+  returning * into t;
+  return t.started_at + make_interval(hours => s.wait_free_hours);
+end;
+$$;
+grant execute on function public.start_wait_free(uuid) to authenticated;
 
 -- Resolves /s/{slug}/{number} to a chapter id (ids only, no content).
 create function public.get_chapter_id(p_slug text, p_number int)
@@ -429,10 +469,11 @@ returns table (
   choices jsonb,
   wait_free_hours int,
   wait_free_ends_at timestamptz,
-  wait_free_other_chapter int
+  wait_free_other_chapter int,
+  wait_free_available boolean
 )
 language sql
-volatile
+stable
 security definer
 set search_path = ''
 as $$

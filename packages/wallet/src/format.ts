@@ -47,9 +47,11 @@ export function formatDuration(ms: number): string {
   const days = Math.floor(totalMin / 1440);
   const hours = Math.floor((totalMin % 1440) / 60);
   const mins = totalMin % 60;
-  if (days > 0) return hours > 0 ? `${days} өдөр ${hours} цаг` : `${days} өдөр`;
-  if (hours > 0) return mins > 0 ? `${hours} цаг ${mins} мин` : `${hours} цаг`;
-  return `${mins} мин`;
+  // Under two days, hours read better than "1 өдөр".
+  if (totalMin >= 2880) return hours > 0 ? `${days} өдөр ${hours} цаг` : `${days} өдөр`;
+  const allHours = Math.floor(totalMin / 60);
+  if (allHours > 0) return mins > 0 ? `${allHours} цаг ${mins} мин` : `${allHours} цаг`;
+  return `${Math.max(1, mins)} мин`;
 }
 
 /** Relative "x өдрийн өмнө" for lists. */

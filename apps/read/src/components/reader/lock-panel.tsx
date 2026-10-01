@@ -12,7 +12,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { loginHref } from "@/lib/auth";
 import type { ChapterView } from "@/lib/content";
-import { WaitFreeCountdown } from "./countdown";
+import { StartWaitFree, WaitFreeCountdown } from "./countdown";
 import { PurchaseForm, UnlockForm } from "./action-forms";
 
 /** Shown under the faded preview of a locked chapter. */
@@ -51,6 +51,8 @@ export async function LockPanel({ chapter, signedIn, path }: { chapter: ChapterV
           <WaitFreeCountdown endsAt={chapter.wait_free_ends_at} initialText={formatDuration(waitLeft)} />
           <p className="text-sm text-muted">Хүлээхгүй бол доорх аргаар одоо нээж болно.</p>
         </div>
+      ) : chapter.wait_free_available ? (
+        <StartWaitFree chapterId={chapter.id} hours={chapter.wait_free_hours ?? 0} />
       ) : chapter.wait_free_other_chapter ? (
         <p className="text-sm text-muted">
           Үнэгүй хүлээх цаг одоогоор {chapter.wait_free_other_chapter}-р бүлэгт явж байна.

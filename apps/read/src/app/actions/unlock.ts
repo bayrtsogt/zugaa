@@ -32,3 +32,11 @@ export async function unlockStoryAction(_prev: UnlockState, form: FormData): Pro
   const supabase = await createClient();
   return run(form, (id) => unlockStory(supabase, id));
 }
+
+/** Starts the wait-free countdown once the lock screen is actually on screen. */
+export async function startWaitFreeAction(chapterId: string): Promise<string | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("start_wait_free", { p_chapter_id: chapterId });
+  if (error) return null;
+  return data;
+}

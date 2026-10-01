@@ -88,6 +88,8 @@ export type ChapterView = {
   wait_free_hours: number | null;
   wait_free_ends_at: string | null;
   wait_free_other_chapter: number | null;
+  /** Signed-in reader may start the wait-free timer for this chapter now. */
+  wait_free_available: boolean;
 };
 
 /** The only path chapter text takes: get_chapter_at → get_chapter → has_access. */

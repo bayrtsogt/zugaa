@@ -4,7 +4,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(69);
+select plan(75);
 
 select is(
   (select count(*) from pg_tables where schemaname = 'public' and not rowsecurity)::int, 0,
@@ -80,7 +80,11 @@ select is((select choices from public.get_chapter((select locked_ch from ids))),
 select pg_temp.as_user('aaaaaaaa-0000-4000-8000-000000000001');
 select is((select locked from public.get_chapter((select locked_ch from ids))), true, 'reader without purchase: locked');
 select ok((select char_length(content) <= 600 from public.get_chapter((select locked_ch from ids))), 'reader without purchase: preview only');
-select isnt((select wait_free_ends_at from public.get_chapter((select locked_ch from ids))), null, 'wait-free countdown started');
+select is((select wait_free_available from public.get_chapter((select locked_ch from ids))), true, 'wait-free available, get_chapter starts nothing');
+select is((select count(*) from public.wait_free_timers)::int, 0, 'viewing (or prefetching) does not start a timer');
+select isnt(public.start_wait_free((select locked_ch from ids)), null, 'start_wait_free starts the countdown');
+select isnt((select wait_free_ends_at from public.get_chapter((select locked_ch from ids))), null, 'countdown visible');
+select is(public.start_wait_free((select locked_ch2 from ids)), null, 'only one running timer per story');
 
 -------------------------------------------------------------------------------
 -- 3. Users cannot write money/access tables or escalate
@@ -122,7 +126,9 @@ update public.wait_free_timers set started_at = now() - interval '25 hours'
  where user_id = 'aaaaaaaa-0000-4000-8000-000000000001';
 select pg_temp.as_user('aaaaaaaa-0000-4000-8000-000000000001');
 select is((select locked from public.get_chapter((select locked_ch from ids))), false, 'wait-free elapsed: chapter open');
-select is((select count(*) from public.unlocks where method = 'wait_free')::int, 1, 'wait-free unlock recorded');
+select isnt(public.start_wait_free('11111111-0000-4000-8000-000000000005'), null, 'next timer starts once previous elapsed');
+select is((select count(*) from public.unlocks where method = 'wait_free')::int, 1, 'elapsed timer became a permanent unlock');
+select is((select locked from public.get_chapter((select locked_ch from ids))), false, 'still open after timer slot moved on');
 
 -------------------------------------------------------------------------------
 -- 6. 18+ gate
