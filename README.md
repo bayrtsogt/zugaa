@@ -65,9 +65,12 @@ Regenerate types after changing SQL: `pnpm db:types`.
 2. **Extensions:** enable `pg_cron` (Database → Extensions) *before* pushing, so the 24-hour expiry job is
    scheduled. Without it requests still expire lazily.
 3. **Auth → URL configuration:** Site URL = `APP_URL`; add `APP_URL/auth/callback` to Redirect URLs.
-4. **Auth → Email:** keep "Email OTP length" = 6. Edit the **Magic Link** and **Confirm signup** templates so they
-   send the code instead of a link — paste `packages/db/supabase/templates/otp.html` (it uses `{{ .Token }}`),
-   subject `Зугаа — нэвтрэх код`. Configure custom SMTP (the built-in sender is heavily rate-limited).
+4. **Auth → Emails:** set up **custom SMTP first** — Supabase only lets you edit email templates with your own
+   SMTP (e.g. Resend: host `smtp.resend.com`, port `465`, username `resend`, password = a full Resend API key,
+   sender `onboarding@resend.dev` until your domain is verified). Then edit the **Magic Link** and **Confirm signup**
+   templates: paste `packages/db/supabase/templates/otp.html` (it uses `{{ .Token }}`), subject
+   `Зугаа — нэвтрэх код`. Set **Email OTP Length** to 6 (new projects may default to 8; the app accepts 6–10).
+   Raise the emails-per-hour rate limit (default is 2).
 5. **Auth → Providers → Google:** create an OAuth client in Google Cloud (type "Web application") with the
    authorized redirect URI `https://<ref>.supabase.co/auth/v1/callback`; paste client id/secret into Supabase.
 6. **Auth → Rate limits:** sign-in requests come from the app server, so raise "Sign-ups and sign-ins" per IP

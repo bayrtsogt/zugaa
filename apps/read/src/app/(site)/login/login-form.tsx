@@ -50,10 +50,10 @@ export function LoginForm({ next }: { next: string }) {
             inputMode="numeric"
             autoComplete="one-time-code"
             pattern="[0-9]*"
-            maxLength={6}
+            maxLength={10}
             required
             autoFocus
-            className={`${fieldClass} font-mono text-xl tracking-[0.4em]`}
+            className={`${fieldClass} font-mono text-xl tracking-[0.3em]`}
             aria-invalid={verifyState.error ? true : undefined}
           />
         </Field>

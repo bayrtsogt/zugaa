@@ -43,14 +43,15 @@ export async function sendOtp(_prev: OtpState, form: FormData): Promise<OtpState
         : "Код илгээж чадсангүй. Дахин оролдоно уу.",
     };
   }
-  return { step: "code", email, info: `${email} хаяг руу 6 оронтой код илгээлээ.` };
+  return { step: "code", email, info: `${email} хаяг руу нэвтрэх код илгээлээ.` };
 }
 
 export async function verifyOtp(_prev: OtpState, form: FormData): Promise<OtpState> {
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const token = String(form.get("token") ?? "").replace(/\D/g, "");
   const next = safeNextPath(String(form.get("next") ?? ""));
-  if (token.length !== 6) return { step: "code", email, error: "6 оронтой кодоо оруулна уу." };
+  // Supabase "Email OTP Length" is 6 by default here but configurable (6–10).
+  if (token.length < 6 || token.length > 10) return { step: "code", email, error: "Имэйлээр ирсэн кодоо оруулна уу." };
 
   if (!(await allow(`otp-verify:${email}`, 10, 900))) {
     return { step: "code", email, error: "Хэт олон буруу оролдлого. 15 минутын дараа дахин оролдоно уу." };
