@@ -49,6 +49,9 @@ export default async function EditStory({ params }: { params: Promise<{ id: stri
               <Link href={`/s/${story.slug}`} className={buttonClass("quiet", "sm")}>
                 Сайт дээр харах
               </Link>
+              <a href={`/admin/stories/${story.id}/export`} download className={buttonClass("quiet", "sm")}>
+                JSON татах
+              </a>
             </div>
           </div>
         </div>

@@ -19,15 +19,19 @@ export type ImportChapter = {
   ending: boolean;
   choices: ImportChoice[];
 };
+/**
+ * Story-level fields other than slug/chapters are only sent when present in
+ * the JSON, so a later batch ({ slug, chapters }) never overwrites them.
+ */
 export type ImportStory = {
   slug: string;
-  title: string;
-  description: string;
-  genre: string;
-  age_rating: (typeof AGE_VALUES)[number];
-  price_coins: number | null;
-  wait_free_hours: number | null;
-  cover_url: string | null;
+  title?: string;
+  description?: string;
+  genre?: string;
+  age_rating?: (typeof AGE_VALUES)[number];
+  price_coins?: number | null;
+  wait_free_hours?: number | null;
+  cover_url?: string | null;
   chapters: ImportChapter[];
 };
 
@@ -36,6 +40,10 @@ export type StoryReport = {
   title: string;
   slug: string;
   story: ImportStory | null;
+  /** No title: a batch of chapters merged into an existing story (by slug). */
+  partial: boolean;
+  /** Choice targets not in this file (already imported or a later batch). */
+  external: number[];
   errors: string[];
   warnings: string[];
   stats: { chapters: number; free: number; endings: number; choices: number; branching: boolean };
@@ -67,25 +75,27 @@ export function parseImport(text: string): { items: unknown[]; error?: string } 
 export function validateStory(raw: unknown, index: number, genres: string[] = DEFAULT_GENRES): StoryReport {
   const errors: string[] = [];
   const warnings: string[] = [];
-  const base = { index, title: "", slug: "", story: null, errors, warnings, stats: { chapters: 0, free: 0, endings: 0, choices: 0, branching: false } };
+  const base = { index, title: "", slug: "", story: null, partial: false, external: [] as number[], errors, warnings, stats: { chapters: 0, free: 0, endings: 0, choices: 0, branching: false } };
   if (!isObj(raw)) {
     errors.push("Өгүүллэг нь JSON объект байх ёстой.");
     return base;
   }
 
+  const has = (k: string) => k in raw;
   const title = str(raw.title);
-  if (!title) errors.push("«title» (гарчиг) хоосон байна.");
+  const partial = !title;
   if (title.length > 200) errors.push("Гарчиг 200 тэмдэгтээс урт байна.");
   const slug = slugify(str(raw.slug) || title);
-  if (!slug) errors.push("«slug» үүсгэж чадсангүй. Латин үсгээр «slug» өгнө үү.");
+  if (!slug) errors.push(partial ? "«title» эсвэл «slug» заавал. Үргэлжлэлийн бүлгүүдэд өгүүллэгийн «slug»-ийг өгнө." : "«slug» үүсгэж чадсангүй. Латин үсгээр «slug» өгнө үү.");
+  else if (partial) warnings.push(`Гарчиггүй тул «${slug}» өгүүллэгт бүлгүүдийг нэмж/засна (бусад мэдээлэл хэвээр).`);
 
   const description = str(raw.description);
-  if (!description) warnings.push("Тайлбар («description») хоосон байна.");
+  if (!partial && !description) warnings.push("Тайлбар («description») хоосон байна.");
 
-  const genre = str(raw.genre) || "other";
-  if (!genres.includes(genre)) errors.push(`«genre» «${genre}» байхгүй. Боломжит: ${genres.join(", ")}. Шинэ төрлийг Админ → Төрөл хэсэгт нэмнэ.`);
-  const age = (str(raw.age_rating) || "all") as ImportStory["age_rating"];
-  if (!AGE_VALUES.includes(age)) errors.push("«age_rating» нь all, 16, 18-ын нэг байна.");
+  const genre = str(raw.genre) || (partial ? "" : "other");
+  if (genre && !genres.includes(genre)) errors.push(`«genre» «${genre}» байхгүй. Боломжит: ${genres.join(", ")}. Шинэ төрлийг Админ → Төрөл хэсэгт нэмнэ.`);
+  const age = (str(raw.age_rating) || (partial ? "" : "all")) as ImportStory["age_rating"] | "";
+  if (age && !AGE_VALUES.includes(age)) errors.push("«age_rating» нь all, 16, 18-ын нэг байна.");
 
   const price = raw.price_coins == null ? null : posInt(raw.price_coins);
   if (raw.price_coins != null && price == null) errors.push("«price_coins» эерэг бүхэл тоо эсвэл null байна.");
@@ -97,7 +107,7 @@ export function validateStory(raw: unknown, index: number, genres: string[] = DE
   const chaptersRaw = Array.isArray(raw.chapters) ? raw.chapters : null;
   if (!chaptersRaw || chaptersRaw.length === 0) {
     errors.push("«chapters» хоосон байна.");
-    return { ...base, title, slug };
+    return { ...base, title, slug, partial };
   }
   if (chaptersRaw.length > MAX_CHAPTERS) errors.push(`Бүлэг ${MAX_CHAPTERS}-аас олон байна.`);
 
@@ -148,25 +158,31 @@ export function validateStory(raw: unknown, index: number, genres: string[] = DE
   const numbers = new Set(chapters.map((c) => c.number));
   const branching = chapters.some((c) => c.choices.length > 0);
 
+  const external = new Set<number>();
   for (const c of chapters) {
     for (const ch of c.choices) {
-      if (!numbers.has(ch.goto)) errors.push(`${c.number}-р бүлгийн «${ch.label}» сонголт байхгүй ${ch.goto}-р бүлэг рүү заасан.`);
+      if (!numbers.has(ch.goto)) external.add(ch.goto);
     }
     if (c.ending && c.choices.length > 0) errors.push(`${c.number}-р бүлэг төгсгөл («ending») мөртөө сонголттой байна.`);
     if (branching && !c.ending && c.choices.length === 0) {
       const next = chapters.find((x) => x.number > c.number);
-      warnings.push(
-        next
-          ? `${c.number}-р бүлэгт сонголт ч, «ending» ч алга — «Дараагийн бүлэг» нь ${next.number}-р бүлэг рүү шилжинэ.`
-          : `${c.number}-р бүлэг сүүлийнх ч «ending» гэж тэмдэглээгүй.`,
-      );
+      if (next) warnings.push(`${c.number}-р бүлэгт сонголт ч, «ending» ч алга — «Дараагийн бүлэг» нь ${next.number}-р бүлэг рүү шилжинэ.`);
+      else if (!partial && external.size === 0) warnings.push(`${c.number}-р бүлэг сүүлийнх ч «ending» гэж тэмдэглээгүй.`);
     }
   }
+  if (external.size) {
+    warnings.push(
+      `Энэ файлд байхгүй бүлэг рүү заасан сонголт: ${[...external].sort((a, b) => a - b).join(", ")}. ` +
+        "Өмнө оруулсан бол шууд холбогдоно; үгүй бол тэр бүлгийг дараагийн ээлжинд оруулах хүртэл сонголт нуугдаж, уншигчид «Үргэлжлэл удахгүй» харагдана.",
+    );
+  }
 
-  if (branching && chapters[0]) {
+  // Reachability only makes sense for a complete story in one file.
+  const first = chapters[0];
+  if (branching && first?.number === 1 && !partial && external.size === 0) {
     // Reachability from the first chapter (choices + implicit "next" for linear chapters).
-    const reach = new Set<number>([chapters[0].number]);
-    const queue = [chapters[0]];
+    const reach = new Set<number>([first.number]);
+    const queue = [first];
     while (queue.length) {
       const c = queue.shift()!;
       const nexts = c.choices.length ? c.choices.map((x) => x.goto) : c.ending ? [] : [chapters.find((x) => x.number > c.number)?.number];
@@ -183,27 +199,26 @@ export function validateStory(raw: unknown, index: number, genres: string[] = DE
   }
 
   const free = chapters.filter((c) => c.free).length;
-  if (free === 0) warnings.push("Үнэгүй бүлэг алга. Эхний 1–2 бүлгийг «free»: true болговол уншигч татагдана.");
-  if (free === chapters.length) warnings.push("Бүх бүлэг үнэгүй байна.");
+  if (free === 0 && !partial) warnings.push("Үнэгүй бүлэг алга. Эхний 1–2 бүлгийг «free»: true болговол уншигч татагдана.");
+  if (free === chapters.length && !partial) warnings.push("Бүх бүлэг үнэгүй байна.");
   if (age === "all" && /(\bсекс\b|бэлгийн|нүцгэн)/i.test(chapters.map((c) => c.content).join(" "))) {
     warnings.push("«all» ангилалтай ч насанд хүрэгчдийн агуулга байж магадгүй. «age_rating»-ийг шалгана уу.");
   }
 
-  const story: ImportStory = {
-    slug,
-    title,
-    description,
-    genre,
-    age_rating: age,
-    price_coins: price,
-    wait_free_hours: wait,
-    cover_url: cover,
-    chapters,
-  };
+  const story: ImportStory = { slug, chapters };
+  if (title) story.title = title;
+  if (!partial || has("description")) story.description = description;
+  if (genre) story.genre = genre;
+  if (age) story.age_rating = age;
+  if (!partial || has("price_coins")) story.price_coins = price;
+  if (!partial || has("wait_free_hours")) story.wait_free_hours = wait;
+  if (!partial || has("cover_url")) story.cover_url = cover;
   return {
     index,
     title,
     slug,
+    partial,
+    external: [...external].sort((a, b) => a - b),
     story: errors.length ? null : story,
     errors,
     warnings,
@@ -217,10 +232,48 @@ export function validateStory(raw: unknown, index: number, genres: string[] = DE
   };
 }
 
+/**
+ * Several batches of one story (same slug, e.g. chapters 1–3 and 4–6 pasted or
+ * uploaded together) become one story: story fields from the first batch that
+ * has them, chapters merged by number (a later batch wins).
+ */
+function mergeSameSlug(items: unknown[]): { items: unknown[]; merged: Map<unknown, number> } {
+  const out: unknown[] = [];
+  const byKey = new Map<string, Record<string, unknown>>();
+  const merged = new Map<unknown, number>();
+  for (const it of items) {
+    const key = isObj(it) ? slugify(str(it.slug) || str(it.title)) : "";
+    const prev = key ? byKey.get(key) : undefined;
+    if (!isObj(it) || !key || !prev || !Array.isArray(it.chapters) || !Array.isArray(prev.chapters)) {
+      if (isObj(it) && key && !prev) {
+        const copy = { ...it };
+        byKey.set(key, copy);
+        out.push(copy);
+      } else out.push(it);
+      continue;
+    }
+    for (const [k, v] of Object.entries(it)) {
+      if (k === "chapters") continue;
+      if (!(k in prev) || prev[k] == null || prev[k] === "") prev[k] = v;
+    }
+    const chapters = new Map<unknown, unknown>();
+    for (const c of [...prev.chapters, ...it.chapters]) chapters.set(isObj(c) && c.number != null ? c.number : Symbol(), c);
+    prev.chapters = [...chapters.values()];
+    merged.set(prev, (merged.get(prev) ?? 1) + 1);
+  }
+  return { items: out, merged };
+}
+
 export function validateImport(text: string, genres: string[] = DEFAULT_GENRES): { reports: StoryReport[]; error?: string } {
-  const { items, error } = parseImport(text);
-  if (error) return { reports: [], error };
-  const reports = items.map((it, i) => validateStory(it, i, genres));
+  const parsed = parseImport(text);
+  if (parsed.error) return { reports: [], error: parsed.error };
+  const { items, merged } = mergeSameSlug(parsed.items);
+  const reports = items.map((it, i) => {
+    const r = validateStory(it, i, genres);
+    const n = merged.get(it);
+    if (n) r.warnings.unshift(`Нэг өгүүллэгийн ${n} хэсгийг (ижил slug) нэгтгэлээ.`);
+    return r;
+  });
   const slugs = new Map<string, number>();
   for (const r of reports) {
     if (!r.slug) continue;

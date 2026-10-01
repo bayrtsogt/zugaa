@@ -11,7 +11,7 @@ const linear = {
   age_rating: "all",
   chapters: [1, 2, 3].map((n) => ({ number: n, title: `Бүлэг ${n}`, free: n === 1, content: long(`Шугаман өгүүллэгийн ${n}-р бүлэг.`) })),
 };
-const broken = { title: "Эвдэрхий", chapters: [{ number: 1, title: "Нэг", content: "x", choices: [{ label: "Хаашаа", goto: 9 }] }] };
+const broken = { title: "Эвдэрхий", chapters: [{ number: 1, title: "Нэг", content: "", choices: [{ label: "Хаашаа", goto: 9 }] }] };
 
 sql(`delete from stories where slug in ('harankhui-gudamj', 'shugaman-turshilt', 'evdekhii')`);
 const browser = await launch();
@@ -21,14 +21,15 @@ const email = `importer-${Date.now()}@test.mn`;
 await login(page, email, "/");
 sql(`update profiles set is_admin = true where id = (select id from auth.users where email = '${email}')`);
 
-await page.goto(`${BASE}/admin/import`);
+await page.goto(`${BASE}/admin/import`, { waitUntil: "networkidle" });
 await page.setInputFiles("input[type=file]", [
   { name: "a.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(good)) },
   { name: "b.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify([linear, broken])) },
 ]);
 await page.waitForSelector("text=3 өгүүллэг · 2 нь оруулахад бэлэн");
 assert(true, "3 stories from 2 files, 2 valid");
-assert((await page.textContent("main")).includes("байхгүй 9-р бүлэг рүү заасан"), "broken choice target reported");
+assert((await page.textContent("main")).includes("1-р бүлэг: агуулга хоосон"), "empty chapter reported");
+assert((await page.textContent("main")).includes("Энэ файлд байхгүй бүлэг рүү заасан сонголт: 9"), "choice to a not-yet-written chapter flagged");
 
 await page.click("button:has-text('Шалгах')");
 await page.waitForSelector("text=Бэлэн · шинэ");

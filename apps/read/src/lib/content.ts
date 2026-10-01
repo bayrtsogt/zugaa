@@ -85,6 +85,8 @@ export type ChapterView = {
   prev_number: number | null;
   next_number: number | null;
   choices: Choice[] | null;
+  /** Branch point whose next chapters are not published yet (serial import). */
+  continues_later: boolean;
   wait_free_hours: number | null;
   wait_free_ends_at: string | null;
   wait_free_other_chapter: number | null;

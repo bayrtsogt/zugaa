@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
-import { STORY_TEMPLATE_JSON, buildAiPrompt } from "@/lib/story-format";
+import { CONTINUE_PROMPT, STORY_TEMPLATE_JSON, buildAiPrompt } from "@/lib/story-format";
 import { getGenres } from "@/lib/genres";
 import { ImportClient } from "./import-client";
 
@@ -18,7 +18,9 @@ export default async function ImportPage() {
           худалдан авалт хадгалагдана).
         </p>
       </div>
-      <ImportClient template={STORY_TEMPLATE_JSON} prompt={buildAiPrompt(genres)} genres={genres.map((g) => g.slug)} />
+      <ImportClient template={STORY_TEMPLATE_JSON} prompt={buildAiPrompt(genres)}
+        continuePrompt={CONTINUE_PROMPT}
+        genres={genres.map((g) => g.slug)} />
     </div>
   );
 }

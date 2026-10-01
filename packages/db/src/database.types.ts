@@ -581,6 +581,7 @@ export type Database = {
     };
     Functions: {
       admin_adjust_coins: { Args: { p_delta: number; p_reason: string; p_user_id: string }; Returns: number };
+      admin_export_story: { Args: { p_slug: string }; Returns: Json };
       admin_find_users: {
         Args: { p_query: string };
         Returns: {
@@ -646,6 +647,7 @@ export type Database = {
         Returns: {
           choices: Json;
           content: string;
+          continues_later: boolean;
           gate: string;
           id: string;
           is_ending: boolean;
@@ -671,6 +673,7 @@ export type Database = {
         Returns: {
           choices: Json;
           content: string;
+          continues_later: boolean;
           gate: string;
           id: string;
           is_ending: boolean;

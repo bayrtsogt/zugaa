@@ -91,3 +91,4 @@ Where the spec was ambiguous I chose the simplest option and recorded it here.
 
 - No OpenNext incremental cache (R2) is configured: every page depends on the reader's session/lock state and is
   rendered per request. Static assets are served by Workers Assets.
+- **Serial (batch) import.** A JSON without `title` is a batch for the existing story with that `slug`: only the keys present are updated, chapters are upserted by number. A choice pointing at a chapter that is not written yet creates a hidden draft placeholder; readers don't see that choice and get «Үргэлжлэл удахгүй гарна» (`continues_later`) instead. Admins can download any story as import-ready JSON («JSON татах») to fix and re-import.

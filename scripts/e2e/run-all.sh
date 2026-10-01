@@ -4,7 +4,7 @@
 # and the mock Bot API: node scripts/e2e/mock-telegram.mjs
 set -euo pipefail
 cd "$(dirname "$0")"
-for t in reader-login reader-progress reader-prefetch reader-unlock reader-settings full-flow admin admin-bulk genres import leak-audit concurrency; do
+for t in reader-login reader-progress reader-prefetch reader-unlock reader-settings full-flow admin admin-bulk genres import serial-import leak-audit concurrency; do
   echo "== $t"
   node "$t.mjs"
 done
