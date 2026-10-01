@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { isValidBirthYear, safeNextPath } from "@zugaa/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
+import { allow } from "@/lib/rate-limit";
+import { appUrl } from "@/lib/env";
 
 export async function signOut() {
   const supabase = await createClient();
@@ -43,5 +45,34 @@ export async function updateDisplayName(_prev: FormState, form: FormData): Promi
   const { error } = await supabase.from("profiles").update({ display_name: name || null }).eq("id", user.id);
   if (error) return { error: "Хадгалж чадсангүй." };
   revalidatePath("/me");
+  return { ok: true };
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * For accounts created without an email (e.g. Facebook accounts registered
+ * with a phone number): Supabase sends a confirmation link to the new address.
+ */
+export async function addEmail(_prev: FormState, form: FormData): Promise<FormState> {
+  const user = await getUser();
+  if (!user) return { error: "Нэвтэрнэ үү." };
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  if (!EMAIL_RE.test(email) || email.length > 254) return { error: "Имэйл хаягаа зөв оруулна уу." };
+  if (!(await allow(`email-change:${user.id}`, 5, 3600))) {
+    return { error: "Хэт олон оролдлого. Нэг цагийн дараа дахин оролдоно уу." };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser(
+    { email },
+    { emailRedirectTo: `${appUrl()}/auth/callback?next=${encodeURIComponent("/me")}` },
+  );
+  if (error) {
+    return {
+      error: /already|registered|exists/i.test(error.message)
+        ? "Энэ имэйлээр өөр бүртгэл үүссэн байна."
+        : "Имэйл нэмж чадсангүй. Дахин оролдоно уу.",
+    };
+  }
   return { ok: true };
 }

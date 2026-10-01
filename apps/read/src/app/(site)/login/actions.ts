@@ -63,13 +63,22 @@ export async function verifyOtp(_prev: OtpState, form: FormData): Promise<OtpSta
   redirect(next);
 }
 
-export async function signInWithGoogle(form: FormData) {
+const PROVIDERS = ["google", "facebook"] as const;
+type Provider = (typeof PROVIDERS)[number];
+
+/** OAuth sign-in (Google, Facebook). The provider is validated server-side. */
+export async function signInWithProvider(form: FormData) {
   const next = safeNextPath(String(form.get("next") ?? ""));
+  const provider = String(form.get("provider") ?? "") as Provider;
+  if (!PROVIDERS.includes(provider)) redirect(`/login?next=${encodeURIComponent(next)}&error=provider`);
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: `${appUrl()}/auth/callback?next=${encodeURIComponent(next)}` },
+    provider,
+    options: {
+      redirectTo: `${appUrl()}/auth/callback?next=${encodeURIComponent(next)}`,
+      ...(provider === "facebook" ? { scopes: "email" } : {}),
+    },
   });
-  if (error || !data.url) redirect(`/login?next=${encodeURIComponent(next)}&error=google`);
+  if (error || !data.url) redirect(`/login?next=${encodeURIComponent(next)}&error=${provider}`);
   redirect(data.url);
 }

@@ -17,6 +17,7 @@
 #   APP_URL                    e.g. https://zugaa-read.<your-subdomain>.workers.dev
 #   BANK_NAME, BANK_ACCOUNT_NUMBER, BANK_ACCOUNT_HOLDER
 #   TELEGRAM_ADMIN_CHAT_ID, ADMIN_TELEGRAM_IDS   (optional until you set up the bot)
+#   CONTACT_EMAIL              shown on /privacy and /data-deletion (optional)
 
 name: Deploy
 
@@ -103,10 +104,11 @@ jobs:
           BANK_NAME: ${{ vars.BANK_NAME }}
           BANK_ACCOUNT_NUMBER: ${{ vars.BANK_ACCOUNT_NUMBER }}
           BANK_ACCOUNT_HOLDER: ${{ vars.BANK_ACCOUNT_HOLDER }}
+          CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
         run: |
           node -e '
             const keys = ["APP_URL","SUPABASE_SERVICE_ROLE_KEY","TELEGRAM_BOT_TOKEN","TELEGRAM_WEBHOOK_SECRET",
-              "TELEGRAM_ADMIN_CHAT_ID","ADMIN_TELEGRAM_IDS","BANK_NAME","BANK_ACCOUNT_NUMBER","BANK_ACCOUNT_HOLDER"];
+              "TELEGRAM_ADMIN_CHAT_ID","ADMIN_TELEGRAM_IDS","BANK_NAME","BANK_ACCOUNT_NUMBER","BANK_ACCOUNT_HOLDER","CONTACT_EMAIL"];
             const out = {};
             for (const k of keys) if (process.env[k]) out[k] = process.env[k];
             require("fs").writeFileSync(process.env.RUNNER_TEMP + "/worker-secrets.json", JSON.stringify(out));

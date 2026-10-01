@@ -9,10 +9,10 @@ export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
   const tokenHash = request.nextUrl.searchParams.get("token_hash");
   const type = request.nextUrl.searchParams.get("type");
-  if (tokenHash && (type === "email" || type === "magiclink" || type === "signup")) {
+  if (tokenHash && (type === "email" || type === "magiclink" || type === "signup" || type === "email_change")) {
     // Email link opened in a different browser than the one that asked for it.
     const supabase = await createClient();
-    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type === "signup" ? "signup" : "email" });
+    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type === "signup" ? "signup" : type === "email_change" ? "email_change" : "email" });
     if (!error) return NextResponse.redirect(`${appUrl()}${next}`);
   }
   if (code) {

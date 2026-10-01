@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getMyProfile, requireUser } from "@/lib/auth";
 import { getContinueReading } from "@/lib/content";
 import { signOut } from "@/app/actions/account";
-import { DisplayNameForm } from "@/components/profile-forms";
+import { AddEmailForm, DisplayNameForm } from "@/components/profile-forms";
 import { BirthYearForm } from "@/components/reader/action-forms";
 import { ReaderSettingsButton } from "@/components/reader-settings-button";
 
@@ -33,7 +33,7 @@ export default async function MePage() {
     <div className="space-y-10">
       <header className="space-y-1">
         <h1 className="font-serif text-2xl">{profile?.display_name || "Миний"}</h1>
-        <p className="text-sm text-muted">{user.email}</p>
+        {user.email ? <p className="text-sm text-muted">{user.email}</p> : null}
       </header>
 
       <section aria-labelledby="wallet" className="space-y-4">
@@ -144,6 +144,7 @@ export default async function MePage() {
         <SectionTitle>
           <span id="settings">Тохиргоо</span>
         </SectionTitle>
+        {user.email ? null : <AddEmailForm />}
         <DisplayNameForm value={profile?.display_name ?? ""} />
         {profile?.birth_year ? (
           <p className="text-sm text-muted">Төрсөн он: {profile.birth_year}</p>
@@ -162,6 +163,9 @@ export default async function MePage() {
             Админ
           </Link>
         ) : null}
+        <Link href="/privacy" className={buttonClass("quiet", "sm")}>
+          Нууцлал
+        </Link>
         <form action={signOut}>
           <button type="submit" className={buttonClass("quiet", "sm")}>
             Гарах
