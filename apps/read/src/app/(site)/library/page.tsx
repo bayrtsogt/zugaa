@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function LibraryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ genre?: string; q?: string }>;
+  searchParams: Promise<{ genre?: string; q?: string; focus?: string }>;
 }) {
   const sp = await searchParams;
   const genre = isGenre(sp.genre) ? sp.genre : undefined;
@@ -22,7 +22,7 @@ export default async function LibraryPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-2xl">Номын сан</h1>
+      <h1 className="font-serif text-3xl font-bold tracking-tight">Номын сан</h1>
 
       <form role="search" action="/library" className="relative">
         {genre ? <input type="hidden" name="genre" value={genre} /> : null}
@@ -30,7 +30,7 @@ export default async function LibraryPage({
           Хайх
         </label>
         <Icon.Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-        <input id="q" name="q" type="search" defaultValue={q} placeholder="Нэр, агуулгаар хайх" className={cx(fieldClass, "pl-10")} />
+        <input id="q" name="q" type="search" defaultValue={q} placeholder="Нэр, агуулгаар хайх" className={cx(fieldClass, "rounded-full pl-10")} autoFocus={sp.focus === "search"} />
       </form>
 
       <nav aria-label="Төрөл">
@@ -40,8 +40,8 @@ export default async function LibraryPage({
               href={q ? `/library?q=${encodeURIComponent(q)}` : "/library"}
               aria-current={!genre ? "page" : undefined}
               className={cx(
-                "inline-flex min-h-11 items-center rounded-sm border px-4 text-sm",
-                !genre ? "border-accent text-accent" : "border-line hover:border-field",
+                "inline-flex min-h-11 items-center rounded-full border px-5 text-sm",
+                !genre ? "border-ink bg-ink text-paper" : "border-ink/40 hover:border-ink",
               )}
             >
               Бүгд
@@ -56,8 +56,8 @@ export default async function LibraryPage({
                   href={`/library?${params}`}
                   aria-current={active ? "page" : undefined}
                   className={cx(
-                    "inline-flex min-h-11 items-center rounded-sm border px-4 text-sm",
-                    active ? "border-accent text-accent" : "border-line hover:border-field",
+                    "inline-flex min-h-11 items-center rounded-full border px-5 text-sm",
+                    active ? "border-ink bg-ink text-paper" : "border-ink/40 hover:border-ink",
                   )}
                 >
                   {g.label}

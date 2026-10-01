@@ -45,9 +45,9 @@ export default async function StoryPage({ params }: Params) {
       ) : null}
 
       <header className="flex gap-5">
-        <Cover title={story.title} color={story.cover_color} src={story.cover_url} size="md" className="w-28 shrink-0 sm:w-36" priority />
+        <Cover title={story.title} genre={story.genre} src={story.cover_url} className="w-28 shrink-0 sm:w-36" priority />
         <div className="min-w-0 space-y-2 pt-1">
-          <h1 className="font-serif text-2xl leading-tight sm:text-3xl">{story.title}</h1>
+          <h1 className="font-serif text-3xl font-bold leading-tight tracking-tight sm:text-4xl">{story.title}</h1>
           <StoryMeta story={story} />
           <p className="text-sm text-muted">
             {chapters.length} бүлэг

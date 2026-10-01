@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Cover, SectionTitle } from "@zugaa/ui";
+import { Cover, DrawnArrow, SectionTitle } from "@zugaa/ui";
 import { formatRelative } from "@zugaa/wallet";
 import { getUser } from "@/lib/auth";
 import { getContinueReading, getNewChapters, listStories } from "@/lib/content";
@@ -15,26 +15,34 @@ export default async function HomePage() {
   ]);
 
   return (
-    <div className="space-y-10">
-      <h1 className="sr-only">Зугаа — Унших</h1>
+    <div className="space-y-12">
+      <header className="relative pr-20 pt-4">
+        <h1 className="font-serif text-[2.25rem] font-bold leading-[1.1] tracking-tight sm:text-5xl">
+          Өнөөдөр юу
+          <br />
+          унших вэ?
+        </h1>
+        <p className="mt-3 text-muted">Монгол өгүүллэг, бүлэг бүлгээр</p>
+        <DrawnArrow className="absolute right-0 top-8 h-20 w-24 text-ink sm:right-6" />
+      </header>
 
       {continueItems.length > 0 ? (
         <section aria-labelledby="continue">
           <SectionTitle>
             <span id="continue">Үргэлжлүүлэн унших</span>
           </SectionTitle>
-          <ul className="space-y-3">
+          <ul className="space-y-4">
             {continueItems.map((c) => (
               <li key={c.story.slug}>
-                <Link href={`/s/${c.story.slug}/${c.chapter.number}`} className="group flex items-center gap-4 py-1">
-                  <Cover title={c.story.title} color={c.story.cover_color} src={c.story.cover_url} size="sm" className="w-11 shrink-0" />
+                <Link href={`/s/${c.story.slug}/${c.chapter.number}`} className="group flex items-center gap-4">
+                  <Cover title={c.story.title} genre={c.story.genre} src={c.story.cover_url} className="w-12 shrink-0" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-serif text-lg group-hover:text-accent">{c.story.title}</p>
+                    <p className="truncate font-serif text-lg font-semibold group-hover:underline group-hover:underline-offset-4">{c.story.title}</p>
                     <p className="text-sm text-muted">
                       Бүлэг {c.chapter.number} · {c.chapter.title}
                     </p>
-                    <div className="mt-2 h-px w-full bg-line" aria-hidden>
-                      <div className="h-px bg-accent" style={{ width: `${Math.round(c.scroll_pct)}%` }} />
+                    <div className="mt-2 h-0.5 w-full rounded-full bg-line" aria-hidden>
+                      <div className="h-0.5 rounded-full bg-ink" style={{ width: `${Math.round(c.scroll_pct)}%` }} />
                     </div>
                   </div>
                 </Link>
@@ -44,17 +52,34 @@ export default async function HomePage() {
         </section>
       ) : null}
 
+      <section aria-labelledby="stories">
+        <SectionTitle
+          action={
+            <Link href="/library" className="text-sm text-ink underline underline-offset-4">
+              Бүгд
+            </Link>
+          }
+        >
+          <span id="stories">Өгүүллэгүүд</span>
+        </SectionTitle>
+        {stories.length > 0 ? (
+          <StoryList stories={stories} priority={2} />
+        ) : (
+          <p className="text-muted">Одоогоор нийтлэгдсэн өгүүллэг алга.</p>
+        )}
+      </section>
+
       {newChapters.length > 0 ? (
         <section aria-labelledby="new">
           <SectionTitle>
             <span id="new">Шинэ бүлгүүд</span>
           </SectionTitle>
-          <ul className="divide-y divide-line border-y border-line">
+          <ul className="divide-y divide-line">
             {newChapters.map((c) => (
               <li key={c.id}>
                 <Link href={`/s/${c.story.slug}/${c.number}`} className="group flex min-h-14 items-baseline justify-between gap-4 py-3">
                   <span className="min-w-0">
-                    <span className="block truncate group-hover:text-accent">
+                    <span className="block truncate font-serif group-hover:underline group-hover:underline-offset-4">
                       {c.number}. {c.title}
                     </span>
                     <span className="block truncate text-sm text-muted">{c.story.title}</span>
@@ -76,30 +101,13 @@ export default async function HomePage() {
             <li key={g.value}>
               <Link
                 href={`/library?genre=${g.value}`}
-                className="inline-flex min-h-11 items-center rounded-sm border border-line px-4 text-sm hover:border-field"
+                className="inline-flex min-h-11 items-center rounded-full border border-ink/80 px-5 text-sm hover:bg-ink hover:text-paper"
               >
                 {g.label}
               </Link>
             </li>
           ))}
         </ul>
-      </section>
-
-      <section aria-labelledby="stories">
-        <SectionTitle
-          action={
-            <Link href="/library" className="text-sm text-accent underline-offset-4 hover:underline">
-              Бүгд
-            </Link>
-          }
-        >
-          <span id="stories">Өгүүллэгүүд</span>
-        </SectionTitle>
-        {stories.length > 0 ? (
-          <StoryList stories={stories} priority={2} />
-        ) : (
-          <p className="text-muted">Одоогоор нийтлэгдсэн өгүүллэг алга.</p>
-        )}
       </section>
     </div>
   );

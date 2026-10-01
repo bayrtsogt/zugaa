@@ -117,7 +117,7 @@ export async function getProgress(userId: string, storyId: string): Promise<(Pro
 }
 
 export type ContinueItem = {
-  story: Pick<StoryCard, "slug" | "title" | "cover_url" | "cover_color">;
+  story: Pick<StoryCard, "slug" | "title" | "cover_url" | "cover_color" | "genre">;
   chapter: { number: number; title: string };
   scroll_pct: number;
   updated_at: string;
@@ -127,7 +127,7 @@ export async function getContinueReading(userId: string, limit = 3): Promise<Con
   const supabase = await createClient();
   const { data } = await supabase
     .from("reading_progress")
-    .select("scroll_pct, updated_at, stories(slug, title, cover_url, cover_color), chapters(number, title)")
+    .select("scroll_pct, updated_at, stories(slug, title, cover_url, cover_color, genre), chapters(number, title)")
     .eq("user_id", userId)
     .order("updated_at", { ascending: false })
     .limit(limit);

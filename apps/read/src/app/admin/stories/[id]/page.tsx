@@ -33,7 +33,7 @@ export default async function EditStory({ params }: { params: Promise<{ id: stri
           ← Өгүүллэг
         </Link>
         <div className="flex flex-wrap items-start gap-5">
-          <Cover title={story.title} color={story.cover_color} src={story.cover_url} className="w-24 shrink-0" />
+          <Cover title={story.title} genre={story.genre} src={story.cover_url} className="w-24 shrink-0" />
           <div className="min-w-0 flex-1 space-y-3">
             <h1 className="font-serif text-2xl">{story.title}</h1>
             <p className={published ? "text-sm text-ok" : "text-sm text-muted"}>{published ? "Нийтлэгдсэн" : "Ноорог"}</p>

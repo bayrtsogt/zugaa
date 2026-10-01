@@ -5,7 +5,7 @@
  * Palette is deliberately small: paper, ink, muted ink, hairline, one accent.
  * All text/background pairs below meet WCAG AA (body text >= 4.5:1).
  *
- *   light  ink 15.9:1 | muted 6.4:1 | accent 8.4:1 | field border 3.4:1
+ *   light  ink 17.8:1 | muted 6.8:1 | accent 8.8:1 | field border 3.7:1
  *   sepia  ink 13.0:1 | muted 6.5:1 | accent 7.9:1 | field border 3.4:1
  *   dark   ink 14.5:1 | muted 6.9:1 | accent 7.3:1 | field border 3.6:1
  * (checked against --zg-paper; hairlines are decorative and exempt).
@@ -16,9 +16,9 @@
 :root,
 :root[data-theme="light"] {
   color-scheme: light;
-  --zg-paper: #f8f5ef;
-  --zg-surface: #fdfbf7;
-  --zg-ink: #1d1a16;
+  --zg-paper: #fcfbf8;
+  --zg-surface: #f4f2ed;
+  --zg-ink: #141414;
   --zg-muted: #5f584e;
   --zg-line: #e2dbcf;
   --zg-line-strong: #c9c0b1;
@@ -83,8 +83,6 @@
     --zg-accent-ink: #151311;
     --zg-fill: #8f2a24;
     --zg-fill-ink: #f6eee6;
-  --zg-fill: #8f2a24;
-  --zg-fill-ink: #f6eee6;
     --zg-accent-soft: #33201d;
     --zg-ok: #8fbf8a;
     --zg-focus: #e48a80;

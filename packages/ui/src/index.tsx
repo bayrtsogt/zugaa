@@ -12,7 +12,7 @@ export type ButtonVariant = "primary" | "secondary" | "quiet";
 export type ButtonSize = "md" | "sm";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-md font-sans font-medium select-none " +
+  "inline-flex items-center justify-center gap-2 rounded-full font-sans font-medium select-none " +
   "transition-colors duration-[var(--duration-fast)] disabled:opacity-50 disabled:pointer-events-none " +
   "aria-disabled:opacity-50 aria-disabled:pointer-events-none";
 
@@ -83,32 +83,29 @@ export function Field({
 }
 
 /* -------------------------------------------------------------------------- */
-/* Covers: the main imagery. Placeholder = solid block + serif title.          */
+/* Covers: a cover image when there is one, otherwise the genre's line art.     */
 /* -------------------------------------------------------------------------- */
 
 export function Cover({
   title,
-  color,
+  genre = "other",
   src,
   className,
-  size = "md",
   priority = false,
 }: {
   title: string;
-  color: string;
+  genre?: string;
   src?: string | null;
   className?: string;
+  /** Kept for callers that still pass the old placeholder colour. */
+  color?: string;
   size?: "sm" | "md" | "lg";
   priority?: boolean;
 }) {
-  const titleSize = size === "lg" ? "text-xl" : size === "md" ? "text-base" : "text-xs";
-  return (
-    <div
-      className={cx("relative aspect-[2/3] overflow-hidden rounded-sm", className)}
-      style={{ backgroundColor: color }}
-    >
-      {src ? (
-        // eslint-disable-next-line @next/next/no-img-element -- remote covers, sized by aspect box
+  if (src) {
+    return (
+      <div className={cx("relative aspect-[3/4] overflow-hidden rounded-sm bg-surface", className)}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- remote covers, sized by aspect box */}
         <img
           src={src}
           alt=""
@@ -116,21 +113,12 @@ export function Cover({
           decoding="async"
           className="absolute inset-0 h-full w-full object-cover"
         />
-      ) : (
-        <div className="absolute inset-0 flex flex-col justify-between p-[9%]">
-          <span aria-hidden className="block h-px w-6 bg-cover-ink/50" />
-          {size === "sm" ? (
-            // Too small for a title (Mongolian words do not hyphenate): a serif initial instead.
-            <span aria-hidden className="font-serif text-2xl leading-none text-cover-ink">
-              {Array.from(title.trim())[0] ?? ""}
-            </span>
-          ) : (
-            <span className={cx("font-serif leading-tight text-cover-ink", titleSize)} style={{ overflowWrap: "anywhere" }}>
-              {title}
-            </span>
-          )}
-        </div>
-      )}
+      </div>
+    );
+  }
+  return (
+    <div className={cx("relative flex aspect-[3/4] items-center justify-center text-ink", className)} title={title}>
+      <GenreArt genre={genre} className="h-full w-full" />
     </div>
   );
 }
@@ -145,8 +133,8 @@ export function Rule({ className }: { className?: string }) {
 
 export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
-    <div className="mb-3 flex items-baseline justify-between gap-4">
-      <h2 className="font-sans text-xs font-semibold uppercase tracking-[0.08em] text-muted">{children}</h2>
+    <div className="mb-4 flex items-baseline justify-between gap-4">
+      <h2 className="font-serif text-xl font-semibold tracking-tight text-ink">{children}</h2>
       {action}
     </div>
   );
@@ -255,3 +243,6 @@ export const Icon = {
     </Svg>
   ),
 };
+
+export * from "./illustrations";
+import { GenreArt } from "./illustrations";
