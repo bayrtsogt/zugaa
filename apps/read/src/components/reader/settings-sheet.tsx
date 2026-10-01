@@ -1,7 +1,14 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { Icon, cx } from "@zugaa/ui";
-import { THEMES, readPrefs, savePrefs, type ReaderPrefs } from "@/components/reader-prefs";
+import {
+  THEMES,
+  getPrefsSnapshot,
+  getServerPrefsSnapshot,
+  savePrefs,
+  subscribePrefs,
+  type ReaderPrefs,
+} from "@/components/reader-prefs";
 
 const SIZES: Array<{ value: ReaderPrefs["fs"]; label: string; px: number }> = [
   { value: 1, label: "Жижиг", px: 14 },
@@ -22,13 +29,12 @@ const optionClass = (active: boolean) =>
   );
 
 export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [prefs, setPrefs] = useState<ReaderPrefs | null>(null);
+  const prefs = useSyncExternalStore(subscribePrefs, getPrefsSnapshot, getServerPrefsSnapshot);
   const panel = useRef<HTMLDivElement>(null);
   const opener = useRef<Element | null>(null);
 
   useEffect(() => {
     if (!open) return;
-    setPrefs(readPrefs());
     opener.current = document.activeElement;
     panel.current?.querySelector<HTMLElement>("button")?.focus();
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -40,9 +46,7 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
   }, [open, onClose]);
 
   const update = (patch: Partial<ReaderPrefs>) => {
-    const next = { ...(prefs ?? readPrefs()), ...patch };
-    setPrefs(next);
-    savePrefs(next);
+    savePrefs({ ...(prefs ?? getPrefsSnapshot()), ...patch });
   };
 
   // Effective theme when none stored: follows the system.

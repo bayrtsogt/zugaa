@@ -40,12 +40,12 @@ export function WaitFreeCountdown({ endsAt, initialText }: { endsAt: string; ini
  */
 export function StartWaitFree({ chapterId, hours }: { chapterId: string; hours: number }) {
   const router = useRouter();
-  const [endsAt, setEndsAt] = useState<string | null>(null);
+  const [started, setStarted] = useState<{ endsAt: string; text: string } | null>(null);
   useEffect(() => {
     let cancelled = false;
     startWaitFreeAction(chapterId).then((at) => {
       if (!cancelled && at) {
-        setEndsAt(at);
+        setStarted({ endsAt: at, text: formatDuration(new Date(at).getTime() - Date.now()) });
         router.refresh();
       }
     });
@@ -53,7 +53,7 @@ export function StartWaitFree({ chapterId, hours }: { chapterId: string; hours: 
       cancelled = true;
     };
   }, [chapterId, router]);
-  if (endsAt) return <WaitFreeCountdown endsAt={endsAt} initialText={formatDuration(new Date(endsAt).getTime() - Date.now())} />;
+  if (started) return <WaitFreeCountdown endsAt={started.endsAt} initialText={started.text} />;
   return (
     <p className="text-base">
       Үнэгүй нээгдэх хүртэл: <span className="font-medium tabular-nums">{hours} цаг</span>

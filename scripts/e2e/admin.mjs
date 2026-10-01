@@ -2,6 +2,7 @@
 // payment approval from the panel (same SQL as Telegram), coin adjustment.
 import { launch, login, assert, sql, BASE } from "./lib.mjs";
 
+sql(`delete from stories where slug = 'shoniin-buudal'`);
 const browser = await launch();
 const stamp = Date.now();
 
@@ -59,6 +60,11 @@ await admin.selectOption("#genre", "thriller");
 await Promise.all([admin.waitForURL(/\/admin\/stories\/[0-9a-f-]{36}$/), admin.click("button:has-text('Хадгалах')")]);
 const storyUrl = admin.url();
 assert(sql(`select slug from stories where title = 'Шөнийн буудал'`) === "shoniin-buudal", "slug transliterated from Mongolian title");
+await admin.goto(`${BASE}/admin/stories/new`);
+await admin.fill("#title", "Шөнийн буудал");
+await admin.click("button:has-text('Хадгалах')");
+await admin.waitForSelector("text=Энэ slug-тай өгүүллэг аль хэдийн байна.");
+assert(true, "duplicate slug rejected with a Mongolian message");
 
 for (const [n, title, body] of [[1, "Тасалбар", "Өвлийн шөнө. ".repeat(80)], [2, "Буудал", "Үүр цайх үед. ".repeat(80)]]) {
   await admin.goto(`${storyUrl}/chapters/new?number=${n}`);

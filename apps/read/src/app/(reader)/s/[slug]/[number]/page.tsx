@@ -22,6 +22,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   // Metadata never carries chapter text.
   return {
     title: `${chapter.number}. ${chapter.title} — ${chapter.story_title}`,
+    description: `«${chapter.story_title}» өгүүллэгийн ${chapter.number}-р бүлэг. Зугаа дээр уншаарай.`,
     alternates: { canonical: `/s/${slug}/${chapter.number}` },
     robots: chapter.locked || chapter.gate ? { index: false } : undefined,
   };

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { safeNextPath } from "@zugaa/auth";
+import { msUntil } from "@zugaa/wallet";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { serverEnv } from "@/lib/server-env";
@@ -30,7 +31,7 @@ export default async function PayPage({
   if (!r) notFound();
 
   // Lazy expiry for display; the database job/functions make it permanent.
-  const expired = r.status === "created" && Date.now() - new Date(r.created_at).getTime() > 24 * 3600_000;
+  const expired = r.status === "created" && -msUntil(r.created_at) > 24 * 3600_000;
 
   return (
     <PaymentScreen

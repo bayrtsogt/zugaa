@@ -10,6 +10,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   transpilePackages: ["@zugaa/ui", "@zugaa/auth", "@zugaa/wallet", "@zugaa/db"],
   poweredByHeader: false,
+  // Put <meta> tags in <head> for every client (not streamed into <body>);
+  // story metadata comes from the same cached query as the page.
+  htmlLimitedBots: /.*/,
   images: { unoptimized: true },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

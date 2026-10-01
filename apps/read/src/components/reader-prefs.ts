@@ -42,11 +42,31 @@ export function applyPrefs(p: ReaderPrefs) {
   if (meta) meta.content = getComputedStyle(d).getPropertyValue("--zg-paper").trim();
 }
 
+// Tiny external store so components read prefs with useSyncExternalStore.
+const listeners = new Set<() => void>();
+let current: ReaderPrefs | null = null;
+
+export function subscribePrefs(cb: () => void): () => void {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+
+export function getPrefsSnapshot(): ReaderPrefs {
+  current ??= readPrefs();
+  return current;
+}
+
+export function getServerPrefsSnapshot(): ReaderPrefs | null {
+  return null;
+}
+
 export function savePrefs(p: ReaderPrefs) {
   applyPrefs(p);
+  current = p;
   try {
     localStorage.setItem(PREFS_KEY, JSON.stringify(p));
   } catch {
     // Private mode / storage blocked: settings still apply for this page.
   }
+  listeners.forEach((l) => l());
 }

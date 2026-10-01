@@ -4,6 +4,7 @@ import {
   formatCoins,
   formatDuration,
   formatMnt,
+  msUntil,
   getProductByCode,
   getStoryProduct,
   getWalletSummary,
@@ -42,7 +43,7 @@ export async function LockPanel({ chapter, signedIn, path }: { chapter: ChapterV
   const canStory = chapter.story_price_coins != null && balance >= chapter.story_price_coins;
   const shopHref = `/shop?next=${encodeURIComponent(path)}`;
   const nudge = wallet ? nudgeText(wallet) : null;
-  const waitLeft = chapter.wait_free_ends_at ? new Date(chapter.wait_free_ends_at).getTime() - Date.now() : null;
+  const waitLeft = chapter.wait_free_ends_at ? msUntil(chapter.wait_free_ends_at) : null;
 
   return (
     <Section>

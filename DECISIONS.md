@@ -18,6 +18,9 @@ Where the spec was ambiguous I chose the simplest option and recorded it here.
   they open a locked chapter in that story while no timer is running. When it elapses the chapter is unlocked
   permanently (`unlocks.method = 'wait_free'`) and the slot frees up for the next locked chapter. If the reader buys
   the chapter meanwhile, the timer is released. Anonymous readers have no timer (login required).
+- **Wait-free timers start from the lock screen, not from `get_chapter()`.** Next.js prefetches links, so a
+  side effect inside `get_chapter()` started timers for chapters the reader never opened (found in testing).
+  `get_chapter()` is read-only; the lock screen calls `start_wait_free()` from a client effect once displayed.
 - **Locked preview** = first ~600 characters cut back to a word boundary, but never more than 40% of the chapter,
   so a short chapter cannot be read in full through its preview.
 - **Choices are never sent for a locked chapter**, and `chapter_choices` is not readable by readers at all —
@@ -52,6 +55,25 @@ Where the spec was ambiguous I chose the simplest option and recorded it here.
   OTP: 5 per email per hour and 20 per IP per hour, checked in the server action before calling Supabase Auth.
   "Гүйлгээ хийсэн": 10 per user per 10 min in the app, plus 5 submissions per user per hour inside SQL.
 
+- **Birth year is set once.** A trigger rejects changing a non-null `birth_year` unless the caller is an admin, so a
+  reader marked under 18 cannot simply edit it.
+- **OTP is requested from the server** (server action) so the app's rate limit is enforced before Supabase is called.
+  Supabase then sees the Worker's IP, so its per-IP sign-in limit should be raised in the dashboard (README).
+
+## UI
+
+- **Navigation**: bottom bar on phones (Нүүр, Номын сан, Миний); the same three links sit in the header from 768px.
+  Coin/эрх purchase lives under Миний and on the lock screen. The reader has no bottom bar (immersive).
+- **Theme applies app-wide**, not only in the reader; with no stored choice it follows the system setting. Set before
+  first paint by a tiny inline script, so there is no flash or layout shift.
+- **Dark theme accent**: deep red text fails contrast on near-black, so dark mode uses a lighter red for accent
+  *text* and keeps filled buttons deep red (`--zg-fill`).
+- **Small covers** (list rows) show the serif initial only; Mongolian words cannot be hyphenated by browsers and
+  long titles got clipped. The title is always printed next to them.
+- **Admin decisions in the panel** keep the row in place with the result; the Telegram message is edited too.
+- **Metadata in `<head>` for all clients** (`htmlLimitedBots: /.*/`). Next 16 streams metadata into `<body>` for
+  non-bot user agents; link previews and SEO tools expect it in `<head>`.
+
 ## Fonts
 
 - Google's `cyrillic` subset does **not** contain Ө ө Ү ү (U+04E8/9, U+04AE/F); they are in `cyrillic-ext`.
@@ -61,6 +83,11 @@ Where the spec was ambiguous I chose the simplest option and recorded it here.
   (33 KB). Both self-hosted via `next/font/local` with metric-matched fallbacks (no layout shift).
 
 ## Deployment
+
+- `proxy.ts` (Next 16's renamed middleware) runs on the Node runtime; OpenNext marks Node middleware on Cloudflare
+  as experimental. It was verified in `workerd` (`wrangler dev`): the full payment flow passes and an expired access
+  token is refreshed and re-set by the proxy. If it ever breaks, rename to `middleware.ts` with the edge runtime
+  (same code).
 
 - No OpenNext incremental cache (R2) is configured: every page depends on the reader's session/lock state and is
   rendered per request. Static assets are served by Workers Assets.

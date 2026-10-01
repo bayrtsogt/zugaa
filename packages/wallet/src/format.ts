@@ -41,6 +41,11 @@ export function formatDate(input: string | Date): string {
   return `${y}-${m}-${d}`;
 }
 
+/** Milliseconds from now until `iso` (negative if past). */
+export function msUntil(iso: string | Date, now = Date.now()): number {
+  return new Date(iso).getTime() - now;
+}
+
 /** Countdown text: "13 цаг 20 мин", "45 мин", "1 өдөр 2 цаг". */
 export function formatDuration(ms: number): string {
   const totalMin = Math.max(0, Math.ceil(ms / 60_000));

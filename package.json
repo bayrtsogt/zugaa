@@ -14,7 +14,10 @@
     "db:reset": "pnpm --filter @zugaa/db reset",
     "db:types": "pnpm --filter @zugaa/db types",
     "db:test": "pnpm --filter @zugaa/db test",
-    "telegram:set-webhook": "tsx scripts/set-telegram-webhook.ts"
+    "telegram:set-webhook": "tsx scripts/set-telegram-webhook.ts",
+    "e2e": "bash scripts/e2e/run-all.sh",
+    "e2e:mock-telegram": "node scripts/e2e/mock-telegram.mjs",
+    "screens": "node scripts/e2e/screens.mjs docs/screenshots/full"
   },
   "devDependencies": {
     "@supabase/supabase-js": "^2.117.2",
