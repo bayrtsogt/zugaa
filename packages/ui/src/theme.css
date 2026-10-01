@@ -1,0 +1,108 @@
+/*
+ * Tailwind v4 theme mapping onto the tokens. Import after `tailwindcss`.
+ * Utilities: bg-paper, text-ink, text-muted, border-line, text-accent, ...
+ */
+@import "./tokens.css";
+
+@theme inline {
+  --color-*: initial;
+  --color-paper: var(--zg-paper);
+  --color-surface: var(--zg-surface);
+  --color-ink: var(--zg-ink);
+  --color-muted: var(--zg-muted);
+  --color-line: var(--zg-line);
+  --color-line-strong: var(--zg-line-strong);
+  --color-field: var(--zg-field);
+  --color-accent: var(--zg-accent);
+  --color-accent-ink: var(--zg-accent-ink);
+  --color-accent-soft: var(--zg-accent-soft);
+  --color-ok: var(--zg-ok);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-cover-ink: #f4eee3;
+
+  --font-serif: var(--font-literata), "PT Serif", Georgia, serif;
+  --font-sans: var(--font-inter), "PT Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Type scale (1.2 minor third, rounded) */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.45;
+  --text-base: 1rem;
+  --text-base--line-height: 1.55;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 1.2;
+  --text-3xl: 2.125rem;
+  --text-3xl--line-height: 1.15;
+
+  --radius-*: initial;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-full: 9999px;
+
+  --shadow-*: initial;
+  --shadow-sheet: 0 -1px 0 var(--zg-line), 0 -8px 24px rgb(0 0 0 / 0.08);
+
+  --container-page: 42rem;
+  --container-wide: 64rem;
+
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 150ms;
+}
+
+@layer base {
+  html {
+    background: var(--zg-paper);
+    color: var(--zg-ink);
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--zg-paper);
+    color: var(--zg-ink);
+    font-family: var(--font-sans);
+  }
+  :focus-visible {
+    outline: 2px solid var(--zg-focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  ::selection {
+    background: var(--zg-accent-soft);
+    color: var(--zg-ink);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0ms !important;
+      animation-duration: 0ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Long-form reading text. */
+  .prose-read {
+    font-family: var(--font-serif);
+    font-size: var(--zg-read-size);
+    line-height: var(--zg-read-leading);
+    max-width: var(--zg-read-measure);
+    hyphens: manual;
+    overflow-wrap: break-word;
+  }
+  .prose-read p { margin: 0 0 1em; }
+  .prose-read h2,
+  .prose-read h3 { font-weight: 600; margin: 1.6em 0 0.6em; line-height: 1.3; }
+  .prose-read hr { border: 0; text-align: center; margin: 2em 0; }
+  .prose-read hr::after { content: "* * *"; color: var(--zg-muted); letter-spacing: 0.5em; }
+  .prose-read blockquote { margin: 1.2em 0; padding-left: 1em; border-left: 1px solid var(--zg-line-strong); color: var(--zg-muted); }
+  .prose-read em { font-style: italic; }
+  .prose-read strong { font-weight: 650; }
+  .prose-read a { color: var(--zg-accent); text-decoration: underline; text-underline-offset: 3px; }
+}

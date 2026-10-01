@@ -1,0 +1,15 @@
+node_modules/
+.next/
+.open-next/
+.wrangler/
+out/
+dist/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.dev.vars
+.DS_Store
+coverage/
+/screenshots/tmp/
+next-env.d.ts

@@ -1,0 +1,4 @@
+@import "tailwindcss";
+@import "@zugaa/ui/theme.css";
+
+@source "../../../../packages/ui/src";

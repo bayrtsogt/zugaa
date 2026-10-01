@@ -1,0 +1,94 @@
+/*
+ * Зугаа design tokens. One source of truth for every app.
+ *
+ * Three themes: light (Цайвар), sepia (Шаргал), dark (Харанхуй).
+ * Palette is deliberately small: paper, ink, muted ink, hairline, one accent.
+ * All text/background pairs below meet WCAG AA (body text >= 4.5:1).
+ *
+ *   light  ink 15.9:1 | muted 6.4:1 | accent 8.4:1 | field border 3.4:1
+ *   sepia  ink 13.0:1 | muted 6.5:1 | accent 7.9:1 | field border 3.4:1
+ *   dark   ink 14.5:1 | muted 6.9:1 | accent 7.3:1 | field border 3.6:1
+ * (checked against --zg-paper; hairlines are decorative and exempt).
+ */
+
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --zg-paper: #f8f5ef;
+  --zg-surface: #fdfbf7;
+  --zg-ink: #1d1a16;
+  --zg-muted: #5f584e;
+  --zg-line: #e2dbcf;
+  --zg-line-strong: #c9c0b1;
+  --zg-field: #8b8275;
+  --zg-accent: #8c1d1d;
+  --zg-accent-ink: #fdfbf7;
+  --zg-accent-soft: #f3e4df;
+  --zg-ok: #2f5d34;
+  --zg-focus: #8c1d1d;
+}
+
+:root[data-theme="sepia"] {
+  color-scheme: light;
+  --zg-paper: #f2e8d4;
+  --zg-surface: #f7efdf;
+  --zg-ink: #2a2117;
+  --zg-muted: #5c4f3e;
+  --zg-line: #ddceb0;
+  --zg-line-strong: #c6b48f;
+  --zg-field: #857660;
+  --zg-accent: #861c18;
+  --zg-accent-ink: #f7efdf;
+  --zg-accent-soft: #ead6c4;
+  --zg-ok: #355a2c;
+  --zg-focus: #861c18;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --zg-paper: #151311;
+  --zg-surface: #1c1a17;
+  --zg-ink: #e9e3d8;
+  --zg-muted: #a59d90;
+  --zg-line: #2f2b26;
+  --zg-line-strong: #4a443c;
+  --zg-field: #776f63;
+  --zg-accent: #e48a80;
+  --zg-accent-ink: #151311;
+  --zg-accent-soft: #33201d;
+  --zg-ok: #8fbf8a;
+  --zg-focus: #e48a80;
+}
+
+/* No stored preference: follow the system. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --zg-paper: #151311;
+    --zg-surface: #1c1a17;
+    --zg-ink: #e9e3d8;
+    --zg-muted: #a59d90;
+    --zg-line: #2f2b26;
+    --zg-line-strong: #4a443c;
+    --zg-field: #776f63;
+    --zg-accent: #e48a80;
+    --zg-accent-ink: #151311;
+    --zg-accent-soft: #33201d;
+    --zg-ok: #8fbf8a;
+    --zg-focus: #e48a80;
+  }
+}
+
+/* Reader typography, adjustable by the reader settings sheet. */
+:root {
+  --zg-read-size: 18px;
+  --zg-read-leading: 1.7;
+  --zg-read-measure: 65ch;
+}
+:root[data-fs="1"] { --zg-read-size: 16px; }
+:root[data-fs="2"] { --zg-read-size: 18px; }
+:root[data-fs="3"] { --zg-read-size: 20px; }
+:root[data-fs="4"] { --zg-read-size: 23px; }
+:root[data-lh="1"] { --zg-read-leading: 1.5; }
+:root[data-lh="2"] { --zg-read-leading: 1.7; }
+:root[data-lh="3"] { --zg-read-leading: 1.95; }

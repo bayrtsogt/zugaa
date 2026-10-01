@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "zugaa-read",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-09-15",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "zugaa-read"
+    }
+  ],
+  "observability": { "enabled": true },
+  // Non-secret config. Secrets (SUPABASE_SERVICE_ROLE_KEY, TELEGRAM_BOT_TOKEN,
+  // TELEGRAM_WEBHOOK_SECRET) are set with `wrangler secret put`.
+  "vars": {
+    "APP_URL": "https://read.zugaa.mn"
+  }
+}

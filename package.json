@@ -1,0 +1,24 @@
+{
+  "name": "zugaa",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @zugaa/read dev",
+    "build": "pnpm --filter @zugaa/read build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "db:start": "pnpm --filter @zugaa/db start",
+    "db:reset": "pnpm --filter @zugaa/db reset",
+    "db:types": "pnpm --filter @zugaa/db types",
+    "db:test": "pnpm --filter @zugaa/db test",
+    "telegram:set-webhook": "tsx scripts/set-telegram-webhook.ts"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.9",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3"
+  }
+}

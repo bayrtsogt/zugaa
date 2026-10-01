@@ -1,0 +1,21 @@
+{
+  "name": "@zugaa/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "start": "supabase start",
+    "stop": "supabase stop",
+    "reset": "supabase db reset",
+    "types": "supabase gen types typescript --local --schema public > src/database.types.ts && prettier --write src/database.types.ts",
+    "test": "supabase test db",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "supabase": "2.119.0",
+    "prettier": "^3"
+  }
+}
