@@ -17,6 +17,7 @@
     "telegram:set-webhook": "tsx scripts/set-telegram-webhook.ts"
   },
   "devDependencies": {
+    "playwright-core": "~1.56.1",
     "prettier": "^3.9.9",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3"

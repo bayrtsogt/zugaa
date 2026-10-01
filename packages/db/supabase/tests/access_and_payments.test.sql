@@ -4,7 +4,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(67);
+select plan(69);
 
 select is(
   (select count(*) from pg_tables where schemaname = 'public' and not rowsecurity)::int, 0,
@@ -139,6 +139,9 @@ select pg_temp.as_user('aaaaaaaa-0000-4000-8000-000000000001');
 update public.profiles set birth_year = 1990 where id = auth.uid();
 select is((select gate from public.get_chapter((select adult_free_ch from ids))), null, 'adult passes gate');
 select is((select locked from public.get_chapter((select adult_free_ch from ids))), false, 'adult reads free 18+ chapter');
+select throws_ok($$ update public.profiles set birth_year = 2015 where id = auth.uid() $$, '42501', 'birth_year_locked', 'birth year is set once');
+select pg_temp.as_anon();
+select ok((select locked and char_length(content) <= 600 from public.get_chapter_at('arvan-guravdugaar-davhar', 4)), 'get_chapter_at: anon gets preview only');
 
 -------------------------------------------------------------------------------
 -- 7. Payment requests: server-side price, limits, approval idempotency

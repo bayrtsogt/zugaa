@@ -96,6 +96,10 @@ set search_path = ''
 as $$
 begin
   if new.birth_year is distinct from old.birth_year then
+    -- Self-declared birth year is asked once; only an admin may correct it.
+    if old.birth_year is not null and not private.is_admin() and auth.uid() is not null then
+      raise exception 'birth_year_locked' using errcode = '42501';
+    end if;
     new.age_verified_at := now();
     new.age_verification_method := 'self_declared';
   end if;

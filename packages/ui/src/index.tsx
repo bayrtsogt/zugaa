@@ -17,7 +17,7 @@ const base =
   "aria-disabled:opacity-50 aria-disabled:pointer-events-none";
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-accent-ink hover:opacity-90",
+  primary: "bg-fill text-fill-ink hover:opacity-90",
   secondary: "border border-field text-ink bg-transparent hover:bg-surface",
   quiet: "text-accent underline-offset-4 hover:underline",
 };
@@ -119,12 +119,16 @@ export function Cover({
       ) : (
         <div className="absolute inset-0 flex flex-col justify-between p-[9%]">
           <span aria-hidden className="block h-px w-6 bg-cover-ink/50" />
-          <span
-            className={cx("font-serif leading-tight text-cover-ink", titleSize)}
-            style={{ hyphens: "auto" }}
-          >
-            {title}
-          </span>
+          {size === "sm" ? (
+            // Too small for a title (Mongolian words do not hyphenate): a serif initial instead.
+            <span aria-hidden className="font-serif text-2xl leading-none text-cover-ink">
+              {Array.from(title.trim())[0] ?? ""}
+            </span>
+          ) : (
+            <span className={cx("font-serif leading-tight text-cover-ink", titleSize)} style={{ overflowWrap: "anywhere" }}>
+              {title}
+            </span>
+          )}
         </div>
       )}
     </div>

@@ -16,6 +16,8 @@
   --color-accent: var(--zg-accent);
   --color-accent-ink: var(--zg-accent-ink);
   --color-accent-soft: var(--zg-accent-soft);
+  --color-fill: var(--zg-fill);
+  --color-fill-ink: var(--zg-fill-ink);
   --color-ok: var(--zg-ok);
   --color-transparent: transparent;
   --color-current: currentColor;

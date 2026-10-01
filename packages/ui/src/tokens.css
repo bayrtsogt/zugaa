@@ -9,6 +9,8 @@
  *   sepia  ink 13.0:1 | muted 6.5:1 | accent 7.9:1 | field border 3.4:1
  *   dark   ink 14.5:1 | muted 6.9:1 | accent 7.3:1 | field border 3.6:1
  * (checked against --zg-paper; hairlines are decorative and exempt).
+ * Buttons use --zg-fill/--zg-fill-ink (>= 7:1): in dark mode the accent used for
+ * text is lightened for contrast, while filled buttons stay deep red.
  */
 
 :root,
@@ -23,6 +25,8 @@
   --zg-field: #8b8275;
   --zg-accent: #8c1d1d;
   --zg-accent-ink: #fdfbf7;
+  --zg-fill: #8c1d1d;
+  --zg-fill-ink: #fdfbf7;
   --zg-accent-soft: #f3e4df;
   --zg-ok: #2f5d34;
   --zg-focus: #8c1d1d;
@@ -39,6 +43,8 @@
   --zg-field: #857660;
   --zg-accent: #861c18;
   --zg-accent-ink: #f7efdf;
+  --zg-fill: #861c18;
+  --zg-fill-ink: #f7efdf;
   --zg-accent-soft: #ead6c4;
   --zg-ok: #355a2c;
   --zg-focus: #861c18;
@@ -55,6 +61,8 @@
   --zg-field: #776f63;
   --zg-accent: #e48a80;
   --zg-accent-ink: #151311;
+  --zg-fill: #8f2a24;
+  --zg-fill-ink: #f6eee6;
   --zg-accent-soft: #33201d;
   --zg-ok: #8fbf8a;
   --zg-focus: #e48a80;
@@ -73,6 +81,10 @@
     --zg-field: #776f63;
     --zg-accent: #e48a80;
     --zg-accent-ink: #151311;
+    --zg-fill: #8f2a24;
+    --zg-fill-ink: #f6eee6;
+  --zg-fill: #8f2a24;
+  --zg-fill-ink: #f6eee6;
     --zg-accent-soft: #33201d;
     --zg-ok: #8fbf8a;
     --zg-focus: #e48a80;
