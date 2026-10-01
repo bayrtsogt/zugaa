@@ -1,0 +1,122 @@
+# Deploys Зугаа — Унших: database migrations to Supabase, the app to Cloudflare
+# Workers, and the Telegram webhook. Run it from the Actions tab ("Run workflow").
+#
+# Repository secrets (Settings → Secrets and variables → Actions → Secrets):
+#   SUPABASE_ACCESS_TOKEN      supabase.com/dashboard/account/tokens
+#   SUPABASE_DB_PASSWORD       the database password chosen at project creation
+#   SUPABASE_SERVICE_ROLE_KEY  Project Settings → API Keys → service_role
+#   CLOUDFLARE_API_TOKEN       Cloudflare → My Profile → API Tokens → "Edit Cloudflare Workers" template
+#   TELEGRAM_BOT_TOKEN         from @BotFather (optional until you set up the bot)
+#   TELEGRAM_WEBHOOK_SECRET    any random string of A-Z a-z 0-9 _ - (optional with the bot)
+#
+# Repository variables (same page → Variables):
+#   SUPABASE_PROJECT_REF       the <ref> in https://<ref>.supabase.co
+#   NEXT_PUBLIC_SUPABASE_URL   https://<ref>.supabase.co
+#   NEXT_PUBLIC_SUPABASE_ANON_KEY  anon key (public by design)
+#   CLOUDFLARE_ACCOUNT_ID      Cloudflare dashboard → Workers & Pages → right sidebar
+#   APP_URL                    e.g. https://zugaa-read.<your-subdomain>.workers.dev
+#   BANK_NAME, BANK_ACCOUNT_NUMBER, BANK_ACCOUNT_HOLDER
+#   TELEGRAM_ADMIN_CHAT_ID, ADMIN_TELEGRAM_IDS   (optional until you set up the bot)
+
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: "First deploy only: insert products and the two demo stories (seed.sql)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  database:
+    name: Supabase migrations
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.119.0
+      - name: Link project
+        working-directory: packages/db
+        run: supabase link --project-ref "${{ vars.SUPABASE_PROJECT_REF }}" --password "$SUPABASE_DB_PASSWORD"
+      - name: Push migrations
+        working-directory: packages/db
+        run: |
+          if [ "${{ inputs.seed }}" = "true" ]; then
+            supabase db push --include-seed --password "$SUPABASE_DB_PASSWORD"
+          else
+            supabase db push --password "$SUPABASE_DB_PASSWORD"
+          fi
+
+  app:
+    name: Cloudflare Worker
+    needs: database
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      # Inlined into the client bundle at build time.
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      APP_URL: ${{ vars.APP_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Check required configuration
+        run: |
+          missing=0
+          for v in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY APP_URL; do
+            if [ -z "${!v}" ]; then echo "::error::$v is not set"; missing=1; fi
+          done
+          exit $missing
+      - name: Build and deploy
+        working-directory: apps/read
+        run: pnpm run deploy
+      - name: Upload runtime configuration as Worker secrets
+        working-directory: apps/read
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ vars.TELEGRAM_ADMIN_CHAT_ID }}
+          ADMIN_TELEGRAM_IDS: ${{ vars.ADMIN_TELEGRAM_IDS }}
+          BANK_NAME: ${{ vars.BANK_NAME }}
+          BANK_ACCOUNT_NUMBER: ${{ vars.BANK_ACCOUNT_NUMBER }}
+          BANK_ACCOUNT_HOLDER: ${{ vars.BANK_ACCOUNT_HOLDER }}
+        run: |
+          node -e '
+            const keys = ["APP_URL","SUPABASE_SERVICE_ROLE_KEY","TELEGRAM_BOT_TOKEN","TELEGRAM_WEBHOOK_SECRET",
+              "TELEGRAM_ADMIN_CHAT_ID","ADMIN_TELEGRAM_IDS","BANK_NAME","BANK_ACCOUNT_NUMBER","BANK_ACCOUNT_HOLDER"];
+            const out = {};
+            for (const k of keys) if (process.env[k]) out[k] = process.env[k];
+            require("fs").writeFileSync(process.env.RUNNER_TEMP + "/worker-secrets.json", JSON.stringify(out));
+            console.log("Uploading:", Object.keys(out).join(", "));
+          '
+          pnpm exec wrangler secret bulk "$RUNNER_TEMP/worker-secrets.json"
+          rm -f "$RUNNER_TEMP/worker-secrets.json"
+      - name: Register Telegram webhook
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_WEBHOOK_SECRET" ]; then
+            echo "Telegram bot not configured yet; skipping. Payments can be approved in /admin/payments."
+            exit 0
+          fi
+          pnpm telegram:set-webhook

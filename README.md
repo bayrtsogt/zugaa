@@ -102,22 +102,37 @@ request and shown to the user.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | build time | anon / publishable key |
 | `SUPABASE_SERVICE_ROLE_KEY` | secret | server only (webhook, notifications, rate limiter) |
 | `TELEGRAM_BOT_TOKEN` | secret | |
-| `TELEGRAM_ADMIN_CHAT_ID` | var | group/chat that receives payment messages |
+| `TELEGRAM_ADMIN_CHAT_ID` | var¹ | group/chat that receives payment messages |
 | `ADMIN_TELEGRAM_IDS` | var | comma-separated user ids allowed to approve |
 | `TELEGRAM_WEBHOOK_SECRET` | secret | checked against `X-Telegram-Bot-Api-Secret-Token` |
 | `BANK_NAME`, `BANK_ACCOUNT_NUMBER`, `BANK_ACCOUNT_HOLDER` | var | shown on the payment screen |
 | `APP_URL` | var | public origin, no trailing slash |
 | `TELEGRAM_API_BASE` | — | tests only (points at the mock Bot API) |
 
+¹ "var" = not secret, but the deploy workflow still uploads every runtime value as a Worker secret so nothing
+project-specific lives in `wrangler.jsonc`.
+
 ## Deploy to Cloudflare Workers
+
+### From GitHub (recommended)
+
+`.github/workflows/deploy.yml` pushes the migrations to Supabase, builds and deploys the Worker, uploads the
+runtime configuration as Worker secrets and registers the Telegram webhook.
+
+1. In the GitHub repo: **Settings → Secrets and variables → Actions**, add the secrets and variables listed at the
+   top of `deploy.yml` (Supabase access token, DB password, service-role key, Cloudflare API token, project ref,
+   Supabase URL + anon key, Cloudflare account id, `APP_URL`, bank details; Telegram values when the bot exists).
+2. **Actions → Deploy → Run workflow.** Tick **seed** on the very first run only (inserts products and the two
+   demo stories).
+3. The first run prints the `*.workers.dev` URL. If it differs from `APP_URL`, update the variable and run again.
+4. Finish the dashboard-only Supabase steps above (email templates, redirect URLs, Google provider).
+
+### From your computer
 
 ```bash
 cd apps/read
 pnpm exec wrangler login
-# Non-secret vars: edit "vars" in wrangler.jsonc (or set them in the dashboard).
-pnpm exec wrangler secret put SUPABASE_SERVICE_ROLE_KEY
-pnpm exec wrangler secret put TELEGRAM_BOT_TOKEN
-pnpm exec wrangler secret put TELEGRAM_WEBHOOK_SECRET
+pnpm exec wrangler secret put SUPABASE_SERVICE_ROLE_KEY   # likewise APP_URL, BANK_*, TELEGRAM_* (see table above)
 # NEXT_PUBLIC_* must be in the build environment (shell env or apps/read/.env.production):
 NEXT_PUBLIC_SUPABASE_URL=... NEXT_PUBLIC_SUPABASE_ANON_KEY=... pnpm run deploy
 ```
