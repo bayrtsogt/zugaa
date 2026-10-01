@@ -18,9 +18,14 @@ export default async function AdminStories() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <h1 className="font-serif text-2xl">Өгүүллэг</h1>
-        <Link href="/admin/stories/new" className={buttonClass("primary", "sm")}>
-          Шинэ өгүүллэг
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/import" className={buttonClass("secondary", "sm")}>
+            JSON оруулах
+          </Link>
+          <Link href="/admin/stories/new" className={buttonClass("primary", "sm")}>
+            Шинэ өгүүллэг
+          </Link>
+        </div>
       </div>
       {(stories ?? []).length === 0 ? (
         <p className="text-muted">Өгүүллэг алга.</p>

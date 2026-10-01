@@ -4,7 +4,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(75);
+select plan(76);
 
 select is(
   (select count(*) from pg_tables where schemaname = 'public' and not rowsecurity)::int, 0,
@@ -95,6 +95,7 @@ select throws_ok($$ insert into public.wallet_transactions (user_id, delta_coins
 select throws_ok($$ update public.profiles set is_admin = true where id = auth.uid() $$, '42501', null, 'cannot set is_admin');
 select throws_ok($$ insert into public.subscriptions (user_id, starts_at, expires_at) values (auth.uid(), now(), now() + interval '1 year') $$, '42501', null, 'cannot insert subscriptions');
 select throws_ok($$ update public.payment_requests set status = 'approved' $$, '42501', null, 'cannot update payment_requests');
+select throws_ok($$ select public.admin_import_story('{"slug":"x","title":"x","chapters":[{"number":1,"title":"a","content":"b"}]}'::jsonb, true) $$, '42501', 'forbidden', 'non-admin cannot import stories');
 select lives_ok($$ update public.profiles set display_name = 'Уншигч' where id = auth.uid() $$, 'can update own display_name');
 select is((select count(*) from public.profiles)::int, 1, 'sees only own profile');
 update public.stories set title = 'x';

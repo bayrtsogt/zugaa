@@ -559,6 +559,7 @@ export type Database = {
           subscription_expires_at: string;
         }[];
       };
+      admin_import_story: { Args: { p_publish?: boolean; p_story: Json }; Returns: Json };
       admin_list_payment_requests: {
         Args: { p_limit?: number; p_status?: string };
         Returns: {

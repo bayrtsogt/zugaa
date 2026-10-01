@@ -1,0 +1,51 @@
+{
+  "slug": "harankhui-gudamj",
+  "title": "Харанхуй гудамж",
+  "description": "Нэг өгүүлбэрээр сонирхол татах тайлбар. Уншигч яагаад энийг унших ёстой вэ?",
+  "genre": "horror",
+  "age_rating": "16",
+  "price_coins": 150,
+  "wait_free_hours": 24,
+  "cover_url": null,
+  "chapters": [
+    {
+      "number": 1,
+      "title": "Эхлэл",
+      "free": true,
+      "content": "Эхний догол мөр.\n\nХоёр дахь догол мөр. *Налуу* болон **тод** үг ашиглаж болно.",
+      "choices": [
+        {
+          "label": "Хаалгыг онгойлгох",
+          "goto": 2
+        },
+        {
+          "label": "Буцаж явах",
+          "goto": 3
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Хаалганы цаана",
+      "free": false,
+      "price_coins": 40,
+      "ending": true,
+      "content": "Энэ салааны төгсгөл...\n\n**Төгсгөл.**"
+    },
+    {
+      "number": 3,
+      "title": "Буцах зам",
+      "free": false,
+      "price_coins": 40,
+      "content": "Сонголтгүй, «ending» биш бүлгийн дараа дугаараар дараагийнх нь (4) нээгдэнэ."
+    },
+    {
+      "number": 4,
+      "title": "Өглөө",
+      "free": false,
+      "price_coins": 40,
+      "ending": true,
+      "content": "Хоёр дахь төгсгөл.\n\n**Төгсгөл.**"
+    }
+  ]
+}

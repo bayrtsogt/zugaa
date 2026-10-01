@@ -7,6 +7,7 @@ export const metadata: Metadata = { title: { default: "Админ", template: "%
 const LINKS = [
   { href: "/admin/payments", label: "Төлбөр" },
   { href: "/admin/stories", label: "Өгүүллэг" },
+  { href: "/admin/import", label: "JSON оруулах" },
   { href: "/admin/users", label: "Хэрэглэгч" },
 ];
 

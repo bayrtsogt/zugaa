@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
   // story metadata comes from the same cached query as the page.
   htmlLimitedBots: /.*/,
   images: { unoptimized: true },
+  // Admin bulk story import posts whole JSON files through a server action.
+  experimental: { serverActions: { bodySizeLimit: "10mb" } },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
