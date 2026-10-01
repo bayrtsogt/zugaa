@@ -24,8 +24,14 @@ export async function sendOtp(_prev: OtpState, form: FormData): Promise<OtpState
     return { step: "email", email, error: "Хэт олон удаа код хүслээ. Нэг цагийн дараа дахин оролдоно уу." };
   }
 
+  const next = safeNextPath(String(form.get("next") ?? ""));
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+  // The email carries a 6-digit code (our template) and, with Supabase's default
+  // template, a link. Either works: the link lands on /auth/callback (same browser).
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: true, emailRedirectTo: `${appUrl()}/auth/callback?next=${encodeURIComponent(next)}` },
+  });
   if (error) {
     console.error("signInWithOtp", error.status, error.message);
     const throttled = error.status === 429;

@@ -14,6 +14,7 @@ export function LoginForm({ next }: { next: string }) {
   if (!onCode) {
     return (
       <form action={(fd) => { setEditing(false); send(fd); }} className="space-y-4" noValidate>
+        <input type="hidden" name="next" value={next} />
         <Field label="Имэйл" htmlFor="email" error={sendState.error}>
           <input
             id="email"
@@ -66,6 +67,7 @@ export function LoginForm({ next }: { next: string }) {
         </button>
         <form action={send}>
           <input type="hidden" name="email" value={email} />
+          <input type="hidden" name="next" value={next} />
           <button type="submit" className="min-h-11 text-accent underline-offset-4 hover:underline" disabled={sending}>
             Код дахин авах
           </button>
