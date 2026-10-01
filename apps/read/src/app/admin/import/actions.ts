@@ -3,13 +3,14 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { assertAdmin } from "@/lib/auth";
 import { validateImport, type StoryReport } from "@/lib/story-import";
+import { getGenres } from "@/lib/genres";
 
 export type CheckResult = { error?: string; reports: StoryReport[]; existing: string[] };
 
 /** Validates on the server too and reports which slugs already exist. */
 export async function checkImport(text: string): Promise<CheckResult> {
   await assertAdmin();
-  const { reports, error } = validateImport(text);
+  const { reports, error } = validateImport(text, (await getGenres()).map((g) => g.slug));
   if (error) return { error, reports: [], existing: [] };
   const slugs = reports.map((r) => r.slug).filter(Boolean);
   const supabase = await createClient();
@@ -25,7 +26,7 @@ export type ImportResult = {
 /** Imports every valid story; each story is one database transaction. */
 export async function importStories(text: string, publish: boolean): Promise<ImportResult> {
   await assertAdmin();
-  const { reports, error } = validateImport(text);
+  const { reports, error } = validateImport(text, (await getGenres()).map((g) => g.slug));
   if (error) return { error, results: [] };
   const supabase = await createClient();
   const results: ImportResult["results"] = [];

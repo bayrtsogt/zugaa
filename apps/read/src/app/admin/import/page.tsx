@@ -1,11 +1,13 @@
 import { requireAdmin } from "@/lib/auth";
-import { AI_PROMPT, STORY_TEMPLATE_JSON } from "@/lib/story-format";
+import { STORY_TEMPLATE_JSON, buildAiPrompt } from "@/lib/story-format";
+import { getGenres } from "@/lib/genres";
 import { ImportClient } from "./import-client";
 
 export const metadata = { title: "Өгүүллэг оруулах" };
 
 export default async function ImportPage() {
   await requireAdmin();
+  const genres = await getGenres();
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -16,7 +18,7 @@ export default async function ImportPage() {
           худалдан авалт хадгалагдана).
         </p>
       </div>
-      <ImportClient template={STORY_TEMPLATE_JSON} prompt={AI_PROMPT} />
+      <ImportClient template={STORY_TEMPLATE_JSON} prompt={buildAiPrompt(genres)} genres={genres.map((g) => g.slug)} />
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { Notice, buttonClass } from "@zugaa/ui";
 import { StoryTable } from "./story-table";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
-import { ageLabel, genreLabel } from "@/lib/labels";
+import { ageLabel } from "@/lib/labels";
 
 export const metadata = { title: "Өгүүллэг" };
 
@@ -13,7 +13,7 @@ export default async function AdminStories({ searchParams }: { searchParams: Pro
   const supabase = await createClient();
   const { data: stories, error } = await supabase
     .from("stories")
-    .select("id, title, slug, status, genre, age_rating, created_at, chapters(id)")
+    .select("id, title, slug, status, genre, age_rating, created_at, chapters(id), genre_info:genres(label)")
     .order("created_at", { ascending: false });
 
   return (
@@ -39,7 +39,7 @@ export default async function AdminStories({ searchParams }: { searchParams: Pro
             id: s.id,
             title: s.title,
             status: s.status,
-            meta: `${genreLabel(s.genre)} · ${ageLabel(s.age_rating)} · ${s.chapters.length} бүлэг`,
+            meta: `${s.genre_info?.label ?? s.genre} · ${ageLabel(s.age_rating)} · ${s.chapters.length} бүлэг`,
           }))}
         />
       )}

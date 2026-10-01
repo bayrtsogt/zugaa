@@ -3,15 +3,16 @@ import { Cover, DrawnArrow, SectionTitle } from "@zugaa/ui";
 import { formatRelative } from "@zugaa/wallet";
 import { getUser } from "@/lib/auth";
 import { getContinueReading, getNewChapters, listStories } from "@/lib/content";
-import { GENRES } from "@/lib/labels";
+import { getGenres } from "@/lib/genres";
 import { StoryList } from "@/components/story-list";
 
 export default async function HomePage() {
   const user = await getUser();
-  const [continueItems, newChapters, stories] = await Promise.all([
+  const [continueItems, newChapters, stories, genres] = await Promise.all([
     user ? getContinueReading(user.id, 3) : Promise.resolve([]),
     getNewChapters(5),
     listStories({ limit: 8 }),
+    getGenres(),
   ]);
 
   return (
@@ -35,7 +36,7 @@ export default async function HomePage() {
             {continueItems.map((c) => (
               <li key={c.story.slug}>
                 <Link href={`/s/${c.story.slug}/${c.chapter.number}`} className="group flex items-center gap-4">
-                  <Cover title={c.story.title} genre={c.story.genre} src={c.story.cover_url} className="w-12 shrink-0" />
+                  <Cover title={c.story.title} genre={c.story.genre_info?.art ?? "other"} src={c.story.cover_url} className="w-12 shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-serif text-lg font-semibold group-hover:underline group-hover:underline-offset-4">{c.story.title}</p>
                     <p className="text-sm text-muted">
@@ -97,10 +98,10 @@ export default async function HomePage() {
           <span id="genres">Төрөл</span>
         </SectionTitle>
         <ul className="flex flex-wrap gap-2">
-          {GENRES.map((g) => (
-            <li key={g.value}>
+          {genres.map((g) => (
+            <li key={g.slug}>
               <Link
-                href={`/library?genre=${g.value}`}
+                href={`/library?genre=${g.slug}`}
                 className="inline-flex min-h-11 items-center rounded-full border border-ink/80 px-5 text-sm hover:bg-ink hover:text-paper"
               >
                 {g.label}

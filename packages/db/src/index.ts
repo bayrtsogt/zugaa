@@ -7,7 +7,8 @@ export type TablesInsert<T extends keyof PublicSchema["Tables"]> = PublicSchema[
 export type TablesUpdate<T extends keyof PublicSchema["Tables"]> = PublicSchema["Tables"][T]["Update"];
 export type Functions<T extends keyof PublicSchema["Functions"]> = PublicSchema["Functions"][T];
 
-export type Genre = "horror" | "thriller" | "mystery" | "romance" | "other";
+/** Genre slugs are admin-managed rows in public.genres. */
+export type Genre = string;
 export type AgeRating = "all" | "16" | "18";
 export type StoryStatus = "draft" | "published";
 export type PaymentStatus = "created" | "submitted" | "approved" | "rejected" | "expired";

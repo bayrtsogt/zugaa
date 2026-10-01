@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { approvePayment, rejectPayment, walletErrorText } from "@zugaa/wallet";
 import { createClient } from "@/lib/supabase/server";
 import { assertAdmin, getMyProfile } from "@/lib/auth";
-import { isGenre } from "@/lib/labels";
 import { slugify } from "@/lib/slug";
 import { syncTelegramDecision } from "@/lib/telegram";
 
@@ -34,7 +33,11 @@ export async function saveStory(_prev: AdminState, form: FormData): Promise<Admi
 
   if (!title) return { error: "Гарчиг оруулна уу." };
   if (!slug) return { error: "Slug буруу байна." };
-  if (!isGenre(genre)) return { error: "Төрөл сонгоно уу." };
+  {
+    const supabase = await createClient();
+    const { data: g } = await supabase.from("genres").select("slug").eq("slug", genre).maybeSingle();
+    if (!g) return { error: "Төрөл сонгоно уу." };
+  }
   if (!["all", "16", "18"].includes(age)) return { error: "Насны ангилал сонгоно уу." };
   if (Number.isNaN(price) || Number.isNaN(wait)) return { error: "Үнэ, хүлээх цаг эерэг бүхэл тоо байна." };
   if (!/^#[0-9a-fA-F]{6}$/.test(color)) return { error: "Өнгө #RRGGBB хэлбэртэй байна." };
@@ -257,4 +260,45 @@ export async function adjustCoins(_prev: AdminState, form: FormData): Promise<Ad
   if (error) return { error: error.message === "insufficient_balance" ? "Үлдэгдэл хасах дүнгээс бага байна." : "Хадгалж чадсангүй." };
   revalidatePath("/admin/users");
   return { ok: `Шинэ үлдэгдэл: ${data} coin` };
+}
+
+/* ------------------------------------------------------------------- genres */
+
+const ARTS = ["horror", "thriller", "mystery", "romance", "other"];
+
+export async function saveGenre(_prev: AdminState, form: FormData): Promise<AdminState> {
+  await assertAdmin();
+  const original = str(form, "original");
+  const label = str(form, "label");
+  const slug = slugify(str(form, "slug") || label);
+  const art = str(form, "art");
+  const position = Number(str(form, "position") || "50");
+  if (!label || label.length > 40) return { error: "Нэр 1–40 тэмдэгт байна." };
+  if (!slug) return { error: "Slug үүсгэж чадсангүй. Латинаар бичнэ үү." };
+  if (!ARTS.includes(art)) return { error: "Зураг сонгоно уу." };
+  if (!Number.isInteger(position)) return { error: "Дараалал бүхэл тоо байна." };
+  const supabase = await createClient();
+  const row = { slug, label, art, position };
+  const { error } = original
+    ? await supabase.from("genres").update(row).eq("slug", original)
+    : await supabase.from("genres").insert(row);
+  if (error) return { error: error.code === "23505" ? "Ийм slug-тай төрөл байна." : "Хадгалж чадсангүй." };
+  revalidatePath("/admin/genres");
+  revalidatePath("/");
+  revalidatePath("/library");
+  return { ok: original ? "Хадгаллаа." : `«${label}» төрөл нэмэгдлээ.` };
+}
+
+export async function deleteGenre(_prev: AdminState, form: FormData): Promise<AdminState> {
+  await assertAdmin();
+  const slug = str(form, "slug");
+  const supabase = await createClient();
+  const { count } = await supabase.from("stories").select("id", { count: "exact", head: true }).eq("genre", slug);
+  if (count) return { error: `Энэ төрөлд ${count} өгүүллэг байна. Эхлээд тэдгээрийн төрлийг солино уу.` };
+  const { error } = await supabase.from("genres").delete().eq("slug", slug);
+  if (error) return { error: "Устгаж чадсангүй." };
+  revalidatePath("/");
+  revalidatePath("/library");
+  // The row disappears, so report on the page itself.
+  redirect(`/admin/genres?msg=${encodeURIComponent(`«${slug}» төрөл устгагдлаа.`)}`);
 }

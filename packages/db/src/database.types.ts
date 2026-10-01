@@ -125,6 +125,30 @@ export type Database = {
           },
         ];
       };
+      genres: {
+        Row: {
+          art: string;
+          created_at: string;
+          label: string;
+          position: number;
+          slug: string;
+        };
+        Insert: {
+          art?: string;
+          created_at?: string;
+          label: string;
+          position?: number;
+          slug: string;
+        };
+        Update: {
+          art?: string;
+          created_at?: string;
+          label?: string;
+          position?: number;
+          slug?: string;
+        };
+        Relationships: [];
+      };
       payment_requests: {
         Row: {
           amount_mnt: number;
@@ -364,7 +388,15 @@ export type Database = {
           title?: string;
           wait_free_hours?: number | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "stories_genre_fk";
+            columns: ["genre"];
+            isOneToOne: false;
+            referencedRelation: "genres";
+            referencedColumns: ["slug"];
+          },
+        ];
       };
       subscriptions: {
         Row: {

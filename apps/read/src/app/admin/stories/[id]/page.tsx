@@ -4,6 +4,7 @@ import { buttonClass, Cover, SectionTitle } from "@zugaa/ui";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { StoryForm } from "../../forms";
+import { getGenres } from "@/lib/genres";
 import { deleteStory, setStoryStatus } from "../../actions";
 
 export const metadata = { title: "Өгүүллэг засах" };
@@ -14,7 +15,7 @@ export default async function EditStory({ params }: { params: Promise<{ id: stri
   const supabase = await createClient();
   const { data: story } = await supabase
     .from("stories")
-    .select("id, title, slug, description, cover_url, cover_color, genre, age_rating, price_coins, wait_free_hours, status")
+    .select("id, title, slug, description, cover_url, cover_color, genre, age_rating, price_coins, wait_free_hours, status, genre_info:genres(art)")
     .eq("id", id)
     .maybeSingle();
   if (!story) notFound();
@@ -33,7 +34,7 @@ export default async function EditStory({ params }: { params: Promise<{ id: stri
           ← Өгүүллэг
         </Link>
         <div className="flex flex-wrap items-start gap-5">
-          <Cover title={story.title} genre={story.genre} src={story.cover_url} className="w-24 shrink-0" />
+          <Cover title={story.title} genre={story.genre_info?.art ?? "other"} src={story.cover_url} className="w-24 shrink-0" />
           <div className="min-w-0 flex-1 space-y-3">
             <h1 className="font-serif text-2xl">{story.title}</h1>
             <p className={published ? "text-sm text-ok" : "text-sm text-muted"}>{published ? "Нийтлэгдсэн" : "Ноорог"}</p>
@@ -91,7 +92,7 @@ export default async function EditStory({ params }: { params: Promise<{ id: stri
         <SectionTitle>
           <span id="details">Мэдээлэл</span>
         </SectionTitle>
-        <StoryForm story={story} />
+        <StoryForm story={story} genres={await getGenres()} />
       </section>
 
       <form action={deleteStory} className="border-t border-line pt-6">

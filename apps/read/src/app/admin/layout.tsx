@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/admin/payments", label: "Төлбөр" },
   { href: "/admin/stories", label: "Өгүүллэг" },
   { href: "/admin/import", label: "JSON оруулах" },
+  { href: "/admin/genres", label: "Төрөл" },
   { href: "/admin/users", label: "Хэрэглэгч" },
 ];
 

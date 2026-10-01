@@ -1,10 +1,9 @@
 "use client";
 import { useActionState, useMemo, useState } from "react";
-import { Button, Field, Notice, cx, fieldClass } from "@zugaa/ui";
+import { Button, Field, GenreArt, Notice, cx, fieldClass } from "@zugaa/ui";
 import { renderMarkdown } from "@/lib/markdown";
 import { slugify } from "@/lib/slug";
-import { GENRES } from "@/lib/labels";
-import { adjustCoins, decidePayment, saveChapter, saveStory, type AdminState } from "./actions";
+import { adjustCoins, decidePayment, deleteGenre, saveChapter, saveGenre, saveStory, type AdminState } from "./actions";
 
 function Feedback({ state }: { state: AdminState }) {
   if (state.error) return <Notice tone="accent">{state.error}</Notice>;
@@ -27,7 +26,7 @@ export type StoryFormValues = {
   wait_free_hours: number | null;
 };
 
-export function StoryForm({ story }: { story?: StoryFormValues }) {
+export function StoryForm({ story, genres }: { story?: StoryFormValues; genres: Array<{ slug: string; label: string }> }) {
   const [state, action, pending] = useActionState(saveStory, {});
   const [title, setTitle] = useState(story?.title ?? "");
   const [slug, setSlug] = useState(story?.slug ?? "");
@@ -45,9 +44,9 @@ export function StoryForm({ story }: { story?: StoryFormValues }) {
       </Field>
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Төрөл" htmlFor="genre">
-          <select id="genre" name="genre" defaultValue={story?.genre ?? "horror"} className={fieldClass}>
-            {GENRES.map((g) => (
-              <option key={g.value} value={g.value}>
+          <select id="genre" name="genre" defaultValue={story?.genre ?? genres[0]?.slug} className={fieldClass}>
+            {genres.map((g) => (
+              <option key={g.slug} value={g.slug}>
                 {g.label}
               </option>
             ))}
@@ -256,5 +255,67 @@ export function AdjustForm({ userId }: { userId: string }) {
       </div>
       <Feedback state={state} />
     </form>
+  );
+}
+
+/* ----------------------------------------------------------------- genres */
+
+const ART_OPTIONS = [
+  { value: "horror", label: "Лаа" },
+  { value: "thriller", label: "Гав" },
+  { value: "mystery", label: "Хурууны хээ" },
+  { value: "romance", label: "Захидал" },
+  { value: "other", label: "Нээлттэй ном" },
+];
+
+export function GenreForm({ genre }: { genre?: { slug: string; label: string; art: string; position: number; stories: number } }) {
+  const [state, action, pending] = useActionState(saveGenre, {});
+  const [del, delAction, deleting] = useActionState(deleteGenre, {});
+  const [art, setArt] = useState(genre?.art ?? "other");
+  const [label, setLabel] = useState(genre?.label ?? "");
+  const id = genre?.slug ?? "new";
+  return (
+    <div className="space-y-2">
+      <form action={action} className="flex flex-wrap items-end gap-3">
+        {genre ? <input type="hidden" name="original" value={genre.slug} /> : null}
+        <GenreArt genre={art} className="h-14 w-14 shrink-0 text-ink" />
+        <label className="min-w-36 flex-1 space-y-1 text-sm">
+          <span className="block text-muted">Нэр</span>
+          <input name="label" required maxLength={40} value={label} onChange={(e) => setLabel(e.target.value)} className={cx(fieldClass, "min-h-11")} aria-label={`${id} нэр`} />
+        </label>
+        <label className="w-40 space-y-1 text-sm">
+          <span className="block text-muted">Slug (URL)</span>
+          <input name="slug" defaultValue={genre?.slug} placeholder={slugify(label) || "jishee"} className={cx(fieldClass, "min-h-11")} aria-label={`${id} slug`} />
+        </label>
+        <label className="w-40 space-y-1 text-sm">
+          <span className="block text-muted">Зураг</span>
+          <select name="art" value={art} onChange={(e) => setArt(e.target.value)} className={cx(fieldClass, "min-h-11")} aria-label={`${id} зураг`}>
+            {ART_OPTIONS.map((a) => (
+              <option key={a.value} value={a.value}>
+                {a.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="w-24 space-y-1 text-sm">
+          <span className="block text-muted">Дараалал</span>
+          <input name="position" inputMode="numeric" defaultValue={genre?.position ?? 50} className={cx(fieldClass, "min-h-11")} aria-label={`${id} дараалал`} />
+        </label>
+        <Button type="submit" variant={genre ? "secondary" : "primary"} size="sm" disabled={pending}>
+          {genre ? "Хадгалах" : "Нэмэх"}
+        </Button>
+      </form>
+      {genre ? (
+        <form action={delAction} className="flex items-center gap-3 text-sm text-muted">
+          <input type="hidden" name="slug" value={genre.slug} />
+          <span>{genre.stories} өгүүллэг</span>
+          <button type="submit" disabled={deleting} className="min-h-11 text-accent underline-offset-4 hover:underline">
+            Устгах
+          </button>
+        </form>
+      ) : null}
+      <Feedback state={state} />
+      <Feedback state={del} />
+    </div>
   );
 }

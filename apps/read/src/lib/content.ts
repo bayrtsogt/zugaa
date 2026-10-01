@@ -1,6 +1,5 @@
 import "server-only";
 import { cache } from "react";
-import type { Genre } from "@zugaa/db";
 import { createClient } from "@/lib/supabase/server";
 
 export type StoryCard = {
@@ -16,12 +15,13 @@ export type StoryCard = {
   price_coins: number | null;
   wait_free_hours: number | null;
   published_at: string | null;
+  genre_info: { label: string; art: string } | null;
 };
 
 const STORY_COLUMNS =
-  "id, slug, title, description, cover_url, cover_color, genre, age_rating, status, price_coins, wait_free_hours, published_at";
+  "id, slug, title, description, cover_url, cover_color, genre, age_rating, status, price_coins, wait_free_hours, published_at, genre_info:genres(label, art)";
 
-export async function listStories(opts: { genre?: Genre; q?: string; limit?: number } = {}): Promise<StoryCard[]> {
+export async function listStories(opts: { genre?: string; q?: string; limit?: number } = {}): Promise<StoryCard[]> {
   const supabase = await createClient();
   let query = supabase
     .from("stories")
@@ -117,7 +117,7 @@ export async function getProgress(userId: string, storyId: string): Promise<(Pro
 }
 
 export type ContinueItem = {
-  story: Pick<StoryCard, "slug" | "title" | "cover_url" | "cover_color" | "genre">;
+  story: Pick<StoryCard, "slug" | "title" | "cover_url" | "cover_color" | "genre" | "genre_info">;
   chapter: { number: number; title: string };
   scroll_pct: number;
   updated_at: string;
@@ -127,7 +127,7 @@ export async function getContinueReading(userId: string, limit = 3): Promise<Con
   const supabase = await createClient();
   const { data } = await supabase
     .from("reading_progress")
-    .select("scroll_pct, updated_at, stories(slug, title, cover_url, cover_color, genre), chapters(number, title)")
+    .select("scroll_pct, updated_at, stories(slug, title, cover_url, cover_color, genre, genre_info:genres(label, art)), chapters(number, title)")
     .eq("user_id", userId)
     .order("updated_at", { ascending: false })
     .limit(limit);

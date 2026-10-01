@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon, cx, fieldClass } from "@zugaa/ui";
 import { listStories } from "@/lib/content";
-import { GENRES, isGenre } from "@/lib/labels";
+import { getGenres } from "@/lib/genres";
 import { StoryList } from "@/components/story-list";
 
 export const metadata: Metadata = {
@@ -16,7 +16,8 @@ export default async function LibraryPage({
   searchParams: Promise<{ genre?: string; q?: string; focus?: string }>;
 }) {
   const sp = await searchParams;
-  const genre = isGenre(sp.genre) ? sp.genre : undefined;
+  const genres = await getGenres();
+  const genre = genres.some((g) => g.slug === sp.genre) ? sp.genre : undefined;
   const q = (sp.q ?? "").slice(0, 60);
   const stories = await listStories({ genre, q });
 
@@ -47,11 +48,11 @@ export default async function LibraryPage({
               Бүгд
             </Link>
           </li>
-          {GENRES.map((g) => {
-            const active = genre === g.value;
-            const params = new URLSearchParams({ genre: g.value, ...(q ? { q } : {}) });
+          {genres.map((g) => {
+            const active = genre === g.slug;
+            const params = new URLSearchParams({ genre: g.slug, ...(q ? { q } : {}) });
             return (
-              <li key={g.value}>
+              <li key={g.slug}>
                 <Link
                   href={`/library?${params}`}
                   aria-current={active ? "page" : undefined}

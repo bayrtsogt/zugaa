@@ -48,10 +48,12 @@ export const STORY_TEMPLATE = {
 
 export const STORY_TEMPLATE_JSON = JSON.stringify(STORY_TEMPLATE, null, 2);
 
-export const AI_PROMPT = `Чи Монгол хэлээр уран зохиол бичдэг мэргэжлийн зохиолч. «Зугаа» апп-д бүлэг бүлгээр уншигдах өгүүллэг бичнэ.
+export function buildAiPrompt(genres: Array<{ slug: string; label: string }>): string {
+  const genreList = genres.map((g) => `${g.slug} (${g.label})`).join(" | ");
+  return `Чи Монгол хэлээр уран зохиол бичдэг мэргэжлийн зохиолч. «Зугаа» апп-д бүлэг бүлгээр уншигдах өгүүллэг бичнэ.
 
 ## Даалгавар
-Төрөл: [аймшиг / триллер / нууцлаг / хайр дурлал / бусад]
+Төрөл: [${genres.map((g) => g.label.toLowerCase()).join(" / ")}]
 Сэдэв / санаа: [энд бичнэ]
 Бүтэц: [шугаман, N бүлэг] ЭСВЭЛ [салаалсан: N шийдвэрийн цэг, цэг бүр 2 сонголт]
 Насны ангилал: [all / 16 / 18]
@@ -74,10 +76,19 @@ export const AI_PROMPT = `Чи Монгол хэлээр уран зохиол �
 ## Гаралт
 ЗӨВХӨН доорх бүтэцтэй, хүчинтэй JSON буцаа. Тайлбар, markdown код блок бүү нэм.
 - «number» 1-ээс дараалсан. Салаалсан бол сонголт «goto»-гоор зорилтот бүлгийн дугаарыг заана.
-- «genre»: horror | thriller | mystery | romance | other
+- «genre»: ${genreList}
 - «age_rating»: all | 16 | 18
 - «slug»: латин жижиг үсэг, зураас (жишээ нь "harankhui-gudamj")
 - «price_coins» (бүтэн өгүүллэг) ойролцоогоор нийт төлбөртэй бүлгүүдийн 60–70%. Бүлэг бүр 40.
 
 Загвар:
 ${STORY_TEMPLATE_JSON}`;
+}
+
+export const AI_PROMPT = buildAiPrompt([
+  { slug: "horror", label: "Аймшиг" },
+  { slug: "thriller", label: "Триллер" },
+  { slug: "mystery", label: "Нууцлаг" },
+  { slug: "romance", label: "Хайр дурлал" },
+  { slug: "other", label: "Бусад" },
+]);

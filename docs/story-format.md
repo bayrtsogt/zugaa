@@ -15,7 +15,7 @@
 | `title` | тийм | Гарчиг |
 | `slug` | үгүй | URL (`/s/<slug>`). Байхгүй бол гарчгаас латинчилж үүсгэнэ |
 | `description` | үгүй | Тайлбар |
-| `genre` | үгүй | `horror`, `thriller`, `mystery`, `romance`, `other` |
+| `genre` | үгүй | Төрлийн slug: `horror`, `thriller`, `mystery`, `romance`, `other` эсвэл Админ → Төрөл хэсэгт нэмсэн шинэ төрөл |
 | `age_rating` | үгүй | `all`, `16`, `18` |
 | `price_coins` | үгүй | Бүтэн өгүүллэгийн үнэ (coin) эсвэл `null` |
 | `wait_free_hours` | үгүй | Хүлээж үнэгүй унших цаг эсвэл `null` |
@@ -115,7 +115,7 @@
 ## Гаралт
 ЗӨВХӨН доорх бүтэцтэй, хүчинтэй JSON буцаа. Тайлбар, markdown код блок бүү нэм.
 - «number» 1-ээс дараалсан. Салаалсан бол сонголт «goto»-гоор зорилтот бүлгийн дугаарыг заана.
-- «genre»: horror | thriller | mystery | romance | other
+- «genre»: horror (Аймшиг) | thriller (Триллер) | mystery (Нууцлаг) | romance (Хайр дурлал) | other (Бусад)
 - «age_rating»: all | 16 | 18
 - «slug»: латин жижиг үсэг, зураас (жишээ нь "harankhui-gudamj")
 - «price_coins» (бүтэн өгүүллэг) ойролцоогоор нийт төлбөртэй бүлгүүдийн 60–70%. Бүлэг бүр 40.

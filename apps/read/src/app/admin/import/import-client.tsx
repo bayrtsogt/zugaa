@@ -25,7 +25,7 @@ function mergeTexts(texts: string[]): string {
   return JSON.stringify(items.length === 1 ? items[0] : items, null, 2);
 }
 
-export function ImportClient({ template, prompt }: { template: string; prompt: string }) {
+export function ImportClient({ template, prompt, genres }: { template: string; prompt: string; genres: string[] }) {
   const [text, setText] = useState("");
   const [publish, setPublish] = useState(false);
   const [check, setCheck] = useState<CheckResult | null>(null);
@@ -36,7 +36,7 @@ export function ImportClient({ template, prompt }: { template: string; prompt: s
   const fileInput = useRef<HTMLInputElement>(null);
 
   // Instant, local check while typing (the server re-checks on «Шалгах»).
-  const local = useMemo(() => (text.trim() ? validateImport(text) : null), [text]);
+  const local = useMemo(() => (text.trim() ? validateImport(text, genres) : null), [text, genres]);
   const reports = check?.reports ?? local?.reports ?? [];
   const parseError = check?.error ?? local?.error;
   const valid = reports.filter((r) => r.story).length;

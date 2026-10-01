@@ -5,7 +5,8 @@
  */
 import { slugify } from "@/lib/slug";
 
-export const GENRE_VALUES = ["horror", "thriller", "mystery", "romance", "other"] as const;
+/** Built-in genres; the admin can add more (pass the live list to the validators). */
+export const DEFAULT_GENRES = ["horror", "thriller", "mystery", "romance", "other"];
 export const AGE_VALUES = ["all", "16", "18"] as const;
 
 export type ImportChoice = { label: string; goto: number };
@@ -22,7 +23,7 @@ export type ImportStory = {
   slug: string;
   title: string;
   description: string;
-  genre: (typeof GENRE_VALUES)[number];
+  genre: string;
   age_rating: (typeof AGE_VALUES)[number];
   price_coins: number | null;
   wait_free_hours: number | null;
@@ -63,7 +64,7 @@ export function parseImport(text: string): { items: unknown[]; error?: string } 
   return { items };
 }
 
-export function validateStory(raw: unknown, index: number): StoryReport {
+export function validateStory(raw: unknown, index: number, genres: string[] = DEFAULT_GENRES): StoryReport {
   const errors: string[] = [];
   const warnings: string[] = [];
   const base = { index, title: "", slug: "", story: null, errors, warnings, stats: { chapters: 0, free: 0, endings: 0, choices: 0, branching: false } };
@@ -81,8 +82,8 @@ export function validateStory(raw: unknown, index: number): StoryReport {
   const description = str(raw.description);
   if (!description) warnings.push("Тайлбар («description») хоосон байна.");
 
-  const genre = (str(raw.genre) || "other") as ImportStory["genre"];
-  if (!GENRE_VALUES.includes(genre)) errors.push(`«genre» нь ${GENRE_VALUES.join(", ")}-ийн нэг байна.`);
+  const genre = str(raw.genre) || "other";
+  if (!genres.includes(genre)) errors.push(`«genre» «${genre}» байхгүй. Боломжит: ${genres.join(", ")}. Шинэ төрлийг Админ → Төрөл хэсэгт нэмнэ.`);
   const age = (str(raw.age_rating) || "all") as ImportStory["age_rating"];
   if (!AGE_VALUES.includes(age)) errors.push("«age_rating» нь all, 16, 18-ын нэг байна.");
 
@@ -216,10 +217,10 @@ export function validateStory(raw: unknown, index: number): StoryReport {
   };
 }
 
-export function validateImport(text: string): { reports: StoryReport[]; error?: string } {
+export function validateImport(text: string, genres: string[] = DEFAULT_GENRES): { reports: StoryReport[]; error?: string } {
   const { items, error } = parseImport(text);
   if (error) return { reports: [], error };
-  const reports = items.map((it, i) => validateStory(it, i));
+  const reports = items.map((it, i) => validateStory(it, i, genres));
   const slugs = new Map<string, number>();
   for (const r of reports) {
     if (!r.slug) continue;
