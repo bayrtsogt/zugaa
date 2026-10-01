@@ -15,5 +15,8 @@ export function supabasePublicConfig() {
 }
 
 export function appUrl(): string {
-  return (process.env.APP_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+  let url = (process.env.APP_URL || "http://localhost:3000").trim().replace(/\/+$/, "");
+  // Tolerate "zugaa-read.example.workers.dev" without a scheme.
+  if (!/^https?:\/\//.test(url)) url = `https://${url}`;
+  return url;
 }

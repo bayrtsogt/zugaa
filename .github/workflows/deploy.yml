@@ -84,6 +84,10 @@ jobs:
           for v in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY APP_URL; do
             if [ -z "${!v}" ]; then echo "::error::$v is not set"; missing=1; fi
           done
+          if [ -n "$APP_URL" ] && ! echo "$APP_URL" | grep -Eq '^https://[^/]+$'; then
+            echo "::error::APP_URL must look like https://zugaa-read.<subdomain>.workers.dev (no trailing slash), got: $APP_URL"
+            missing=1
+          fi
           exit $missing
       - name: Build and deploy
         working-directory: apps/read
