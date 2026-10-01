@@ -9,6 +9,7 @@ function required(name: string): string {
 export const serverEnv = {
   serviceRoleKey: () => required("SUPABASE_SERVICE_ROLE_KEY"),
   telegramBotToken: () => process.env.TELEGRAM_BOT_TOKEN ?? "",
+  telegramApiBase: () => process.env.TELEGRAM_API_BASE || "https://api.telegram.org",
   telegramAdminChatId: () => process.env.TELEGRAM_ADMIN_CHAT_ID ?? "",
   adminTelegramIds: () => process.env.ADMIN_TELEGRAM_IDS ?? "",
   telegramWebhookSecret: () => process.env.TELEGRAM_WEBHOOK_SECRET ?? "",

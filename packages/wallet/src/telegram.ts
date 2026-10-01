@@ -30,11 +30,13 @@ export type TelegramUpdate = {
 export class TelegramClient {
   constructor(
     private readonly token: string,
-    private readonly fetchImpl: typeof fetch = fetch,
+    /** Override only for local testing against a mock Bot API. */
+    private readonly apiBase = "https://api.telegram.org",
+    private readonly fetchImpl: typeof fetch = (...args) => fetch(...args),
   ) {}
 
   async call<T = unknown>(method: string, body: Record<string, unknown>): Promise<T> {
-    const res = await this.fetchImpl(`https://api.telegram.org/bot${this.token}/${method}`, {
+    const res = await this.fetchImpl(`${this.apiBase}/bot${this.token}/${method}`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
