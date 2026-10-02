@@ -10,13 +10,15 @@ import { signOut } from "@/app/actions/account";
 import { AddEmailForm, DisplayNameForm } from "@/components/profile-forms";
 import { BirthYearForm } from "@/components/reader/action-forms";
 import { ReaderSettingsButton } from "@/components/reader-settings-button";
+import { getFollowedStories, getTelegramLinked } from "@/lib/follows";
+import { linkTelegram, setFollow, unlinkTelegram } from "@/app/actions/follow";
 
 export const metadata: Metadata = { title: "Миний", robots: { index: false } };
 
-export default async function MePage() {
+export default async function MePage({ searchParams }: { searchParams: Promise<{ tg?: string }> }) {
   const user = await requireUser("/me");
   const supabase = await createClient();
-  const [profile, wallet, payments, history] = await Promise.all([
+  const [profile, wallet, payments, history, followed, tgLinked, sp] = await Promise.all([
     getMyProfile(),
     getWalletSummary(supabase),
     supabase
@@ -25,6 +27,9 @@ export default async function MePage() {
       .order("created_at", { ascending: false })
       .limit(20),
     getContinueReading(user.id, 10),
+    getFollowedStories(user.id),
+    getTelegramLinked(user.id),
+    searchParams,
   ]);
   const nudge = wallet ? nudgeText(wallet) : null;
   const rows = payments.data ?? [];
@@ -63,6 +68,60 @@ export default async function MePage() {
         <Link href="/shop" className={buttonClass("secondary", "md", "w-full sm:w-auto")}>
           Coin, эрх авах
         </Link>
+      </section>
+
+      <section aria-labelledby="following" className="space-y-4">
+        <SectionTitle>
+          <span id="following">Дагаж буй өгүүллэг</span>
+        </SectionTitle>
+        <div className="space-y-2 rounded-md border border-line px-4 py-4">
+          {tgLinked ? (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm">
+                <span className="text-ok">✓ Telegram холбогдсон.</span> Шинэ бүлэг гармагц Telegram-аар мэдэгдэнэ.
+              </p>
+              <form action={unlinkTelegram}>
+                <button type="submit" className={buttonClass("quiet", "sm")}>
+                  Салгах
+                </button>
+              </form>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-muted">
+                Дагаж буй өгүүллэгт шинэ бүлэг гармагц Telegram-аар мэдэгдэл авах бол Telegram-аа холбоно уу. Бот нээгдэхэд «Start» дарна.
+              </p>
+              <form action={linkTelegram}>
+                <button type="submit" className={buttonClass("secondary", "md", "w-full sm:w-auto")}>
+                  Telegram холбох
+                </button>
+              </form>
+              {sp.tg === "error" ? <p className="text-sm text-accent">Telegram холбоос үүсгэж чадсангүй. Дахин оролдоно уу.</p> : null}
+            </>
+          )}
+        </div>
+        {followed.length === 0 ? (
+          <p className="text-muted">Өгүүллэгийн хуудаснаас «Дагах» дарвал энд харагдана. Үргэлжилж буй өгүүллэгийг уншиж эхлэхэд автоматаар дагана.</p>
+        ) : (
+          <ul className="divide-y divide-line border-y border-line">
+            {followed.map((f) => (
+              <li key={f.story_id} className="flex min-h-14 items-center justify-between gap-4 py-2">
+                <Link href={`/s/${f.slug}`} className="min-w-0 hover:text-accent">
+                  <span className="block truncate font-display">{f.title}</span>
+                  {f.ongoing ? <span className="block text-sm text-muted">Үргэлжилж байна</span> : null}
+                </Link>
+                <form action={setFollow}>
+                  <input type="hidden" name="story_id" value={f.story_id} />
+                  <input type="hidden" name="follow" value="0" />
+                  <input type="hidden" name="path" value="/me" />
+                  <button type="submit" className={buttonClass("quiet", "sm")} aria-label={`${f.title} — дагахаа болих`}>
+                    Болих
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section aria-labelledby="payments">

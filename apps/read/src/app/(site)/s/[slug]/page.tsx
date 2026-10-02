@@ -6,6 +6,8 @@ import { formatCoins } from "@zugaa/wallet";
 import { getUser } from "@/lib/auth";
 import { getProgress, getStory, getStoryChapters } from "@/lib/content";
 import { StoryMeta } from "@/components/story-list";
+import { FollowButton } from "@/components/follow-button";
+import { isFollowing } from "@/lib/follows";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -18,7 +20,13 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     title: story.title,
     description,
     alternates: { canonical: `/s/${story.slug}` },
-    openGraph: { title: story.title, description, type: "book", url: `/s/${story.slug}` },
+    openGraph: {
+      title: story.title,
+      description,
+      type: "book",
+      url: `/s/${story.slug}`,
+      images: story.cover_url ? [{ url: story.cover_url }] : undefined,
+    },
     robots: story.status === "published" ? undefined : { index: false },
   };
 }
@@ -29,9 +37,10 @@ export default async function StoryPage({ params }: Params) {
   if (!story) notFound();
 
   const user = await getUser();
-  const [chapters, progress] = await Promise.all([
+  const [chapters, progress, following] = await Promise.all([
     getStoryChapters(story.id),
     user ? getProgress(user.id, story.id) : Promise.resolve(null),
+    user ? isFollowing(user.id, story.id) : Promise.resolve(false),
   ]);
 
   const first = chapters[0];
@@ -53,6 +62,7 @@ export default async function StoryPage({ params }: Params) {
             {chapters.length} бүлэг
             {story.wait_free_hours ? ` · ${story.wait_free_hours} цаг тутамд нэг бүлэг үнэгүй` : ""}
           </p>
+          {story.ongoing ? <p className="text-sm font-medium text-accent">Үргэлжилж байна · шинэ бүлэг нэмэгдэнэ</p> : null}
         </div>
       </header>
 
@@ -79,6 +89,10 @@ export default async function StoryPage({ params }: Params) {
             </Link>
           )}
         </div>
+      ) : null}
+
+      {story.status === "published" ? (
+        <FollowButton storyId={story.id} following={following} path={`/s/${story.slug}`} className="sm:max-w-xs" />
       ) : null}
 
       <section aria-labelledby="chapters">

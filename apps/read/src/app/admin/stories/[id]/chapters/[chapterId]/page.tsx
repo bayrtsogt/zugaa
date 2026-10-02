@@ -34,14 +34,15 @@ export default async function EditChapter({
       is_ending: false,
       price_coins: 40,
       published: false,
+      image_url: null,
       choices: [],
     };
   } else {
     // Content comes through get_chapter (admins get the full text, drafts included).
     const [{ data: meta }, { data: full }, { data: choices }] = await Promise.all([
-      supabase.from("chapters").select("id, number, title, is_free, is_ending, price_coins, published_at").eq("id", chapterId).maybeSingle(),
+      supabase.from("chapters").select("id, number, title, is_free, is_ending, price_coins, published_at, image_url").eq("id", chapterId).maybeSingle(),
       supabase.rpc("get_chapter", { p_chapter_id: chapterId }),
-      supabase.from("chapter_choices").select("label, position, target:chapters!chapter_choices_target_chapter_id_fkey(number)").eq("chapter_id", chapterId).order("position"),
+      supabase.from("chapter_choices").select("label, position, image_url, target:chapters!chapter_choices_target_chapter_id_fkey(number)").eq("chapter_id", chapterId).order("position"),
     ]);
     if (!meta) notFound();
     values = {
@@ -54,7 +55,8 @@ export default async function EditChapter({
       is_ending: meta.is_ending,
       price_coins: meta.price_coins,
       published: Boolean(meta.published_at),
-      choices: (choices ?? []).map((c) => ({ label: c.label, target_number: c.target?.number ?? 0 })),
+      image_url: meta.image_url,
+      choices: (choices ?? []).map((c) => ({ label: c.label, target_number: c.target?.number ?? 0, image_url: c.image_url })),
     };
   }
 

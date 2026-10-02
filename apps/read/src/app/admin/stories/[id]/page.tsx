@@ -15,13 +15,13 @@ export default async function EditStory({ params }: { params: Promise<{ id: stri
   const supabase = await createClient();
   const { data: story } = await supabase
     .from("stories")
-    .select("id, title, slug, description, cover_url, cover_color, genre, age_rating, price_coins, wait_free_hours, status, genre_info:genres(art)")
+    .select("id, title, slug, description, cover_url, cover_color, genre, age_rating, price_coins, wait_free_hours, status, ongoing, genre_info:genres(art)")
     .eq("id", id)
     .maybeSingle();
   if (!story) notFound();
   const { data: chapters } = await supabase
     .from("chapters")
-    .select("id, number, title, is_free, price_coins, published_at, is_ending")
+    .select("id, number, title, is_free, price_coins, published_at, is_ending, image_url")
     .eq("story_id", id)
     .order("number");
   const nextNumber = (chapters?.at(-1)?.number ?? 0) + 1;
@@ -74,9 +74,17 @@ export default async function EditStory({ params }: { params: Promise<{ id: stri
             {chapters!.map((c) => (
               <li key={c.id}>
                 <Link href={`/admin/stories/${story.id}/chapters/${c.id}`} className="flex min-h-14 items-center justify-between gap-4 py-3 hover:text-accent">
-                  <span className="min-w-0 truncate">
-                    <span className="mr-2 tabular-nums text-muted">{c.number}.</span>
-                    {c.title}
+                  <span className="flex min-w-0 items-center gap-3">
+                    <span className="relative aspect-[3/2] w-12 shrink-0 overflow-hidden rounded-sm bg-line" title={c.image_url ? "Зурагтай" : "Зураггүй"}>
+                      {c.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- admin thumbnail
+                        <img src={c.image_url} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                      ) : null}
+                    </span>
+                    <span className="min-w-0 truncate">
+                      <span className="mr-2 tabular-nums text-muted">{c.number}.</span>
+                      {c.title}
+                    </span>
                   </span>
                   <span className="shrink-0 text-sm text-muted">
                     {c.is_free ? "Үнэгүй" : `${c.price_coins} coin`}

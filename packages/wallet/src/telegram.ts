@@ -4,13 +4,13 @@
  */
 import { formatDateTime, formatMnt } from "./format";
 
-export type InlineButton = { text: string; callback_data: string };
+export type InlineButton = { text: string; callback_data: string } | { text: string; url: string };
 export type InlineKeyboard = { inline_keyboard: InlineButton[][] };
 
 export type TelegramUser = { id: number; first_name?: string; last_name?: string; username?: string };
 export type TelegramMessage = {
   message_id: number;
-  chat: { id: number };
+  chat: { id: number; type?: "private" | "group" | "supergroup" | "channel" };
   from?: TelegramUser;
   text?: string;
   reply_to_message?: TelegramMessage;
@@ -64,6 +64,10 @@ export class TelegramClient {
       text,
       reply_markup: replyMarkup ?? { inline_keyboard: [] },
     });
+  }
+
+  getMe() {
+    return this.call<TelegramUser & { username: string }>("getMe", {});
   }
 
   answerCallbackQuery(callbackQueryId: string, text?: string) {

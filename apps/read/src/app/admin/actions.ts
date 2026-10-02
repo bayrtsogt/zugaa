@@ -1,11 +1,19 @@
 "use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { approvePayment, rejectPayment, walletErrorText } from "@zugaa/wallet";
 import { createClient } from "@/lib/supabase/server";
 import { assertAdmin, getMyProfile } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
 import { syncTelegramDecision } from "@/lib/telegram";
+import { isImageUrl } from "@/lib/image-url";
+import { notifyFollowers } from "@/lib/notify";
+
+/** New chapters went live: message followers after the response is sent. */
+function notifyLater(storyId: string) {
+  after(() => notifyFollowers(storyId).catch((e) => console.error("notify followers", e)));
+}
 
 export type AdminState = { error?: string; ok?: string };
 
@@ -41,7 +49,7 @@ export async function saveStory(_prev: AdminState, form: FormData): Promise<Admi
   if (!["all", "16", "18"].includes(age)) return { error: "Насны ангилал сонгоно уу." };
   if (Number.isNaN(price) || Number.isNaN(wait)) return { error: "Үнэ, хүлээх цаг эерэг бүхэл тоо байна." };
   if (!/^#[0-9a-fA-F]{6}$/.test(color)) return { error: "Өнгө #RRGGBB хэлбэртэй байна." };
-  if (coverUrl && !/^https:\/\//.test(coverUrl)) return { error: "Хавтасны зураг https:// хаягтай байна." };
+  if (coverUrl && !isImageUrl(coverUrl)) return { error: "Хавтасны зураг https:// хаягтай байна." };
 
   const row = {
     title,
@@ -53,6 +61,7 @@ export async function saveStory(_prev: AdminState, form: FormData): Promise<Admi
     wait_free_hours: wait,
     cover_color: color,
     cover_url: coverUrl || null,
+    ongoing: form.get("ongoing") === "on",
   };
   const supabase = await createClient();
   const res = id
@@ -72,6 +81,7 @@ export async function setStoryStatus(form: FormData) {
   const status = str(form, "status") === "published" ? "published" : "draft";
   const supabase = await createClient();
   await supabase.from("stories").update({ status }).eq("id", id);
+  if (status === "published") notifyLater(id);
   revalidatePath(`/admin/stories/${id}`);
   revalidatePath("/admin/stories");
 }
@@ -158,7 +168,9 @@ export async function saveChapter(_prev: AdminState, form: FormData): Promise<Ad
   const price = optInt(form, "price_coins");
   const title = str(form, "title");
   const content = String(form.get("content") ?? "");
+  const imageUrl = str(form, "image_url");
   if (!number || Number.isNaN(number)) return { error: "Бүлгийн дугаар эерэг бүхэл тоо байна." };
+  if (imageUrl && !isImageUrl(imageUrl)) return { error: "Бүлгийн зураг https:// хаягтай байна." };
   if (!title) return { error: "Гарчиг оруулна уу." };
   if (!price || Number.isNaN(price)) return { error: "Үнэ эерэг бүхэл тоо байна." };
 
@@ -177,6 +189,7 @@ export async function saveChapter(_prev: AdminState, form: FormData): Promise<Ad
     is_free: form.get("is_free") === "on",
     is_ending: form.get("is_ending") === "on",
     price_coins: price,
+    image_url: imageUrl || null,
     published_at: publishedAt,
   };
   const res = id
@@ -190,9 +203,11 @@ export async function saveChapter(_prev: AdminState, form: FormData): Promise<Ad
   // Choices: replace the whole set. Rows arrive as choice_label[] / choice_target[].
   const labels = form.getAll("choice_label").map(String);
   const targets = form.getAll("choice_target").map((v) => Number(v));
+  const images = form.getAll("choice_image").map((v) => String(v).trim());
   const wanted = labels
-    .map((label, i) => ({ label: label.trim(), target: targets[i] ?? 0, position: i }))
+    .map((label, i) => ({ label: label.trim(), target: targets[i] ?? 0, position: i, image: images[i] || null }))
     .filter((c) => c.label && c.target > 0);
+  if (wanted.some((c) => c.image && !isImageUrl(c.image))) return { error: "Сонголтын зураг https:// хаягтай байна." };
   const { data: siblings } = await supabase.from("chapters").select("id, number").eq("story_id", storyId);
   const byNumber = new Map((siblings ?? []).map((c) => [c.number, c.id]));
   const missing = wanted.find((c) => !byNumber.has(c.target));
@@ -201,11 +216,18 @@ export async function saveChapter(_prev: AdminState, form: FormData): Promise<Ad
   await supabase.from("chapter_choices").delete().eq("chapter_id", chapterId);
   if (wanted.length > 0) {
     const { error } = await supabase.from("chapter_choices").insert(
-      wanted.map((c) => ({ chapter_id: chapterId, label: c.label, target_chapter_id: byNumber.get(c.target)!, position: c.position })),
+      wanted.map((c) => ({
+        chapter_id: chapterId,
+        label: c.label,
+        target_chapter_id: byNumber.get(c.target)!,
+        position: c.position,
+        image_url: c.image,
+      })),
     );
     if (error) return { error: "Сонголтыг хадгалж чадсангүй." };
   }
 
+  if (publish) notifyLater(storyId);
   revalidatePath(`/admin/stories/${storyId}`);
   if (!id) redirect(`/admin/stories/${storyId}/chapters/${chapterId}?saved=1`);
   return { ok: "Хадгаллаа." };

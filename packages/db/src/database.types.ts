@@ -43,6 +43,7 @@ export type Database = {
         Row: {
           chapter_id: string;
           id: string;
+          image_url: string | null;
           label: string;
           position: number;
           target_chapter_id: string;
@@ -50,6 +51,7 @@ export type Database = {
         Insert: {
           chapter_id: string;
           id?: string;
+          image_url?: string | null;
           label: string;
           position?: number;
           target_chapter_id: string;
@@ -57,6 +59,7 @@ export type Database = {
         Update: {
           chapter_id?: string;
           id?: string;
+          image_url?: string | null;
           label?: string;
           position?: number;
           target_chapter_id?: string;
@@ -83,6 +86,7 @@ export type Database = {
           content: string;
           created_at: string;
           id: string;
+          image_url: string | null;
           is_ending: boolean;
           is_free: boolean;
           number: number;
@@ -95,6 +99,7 @@ export type Database = {
           content?: string;
           created_at?: string;
           id?: string;
+          image_url?: string | null;
           is_ending?: boolean;
           is_free?: boolean;
           number: number;
@@ -107,6 +112,7 @@ export type Database = {
           content?: string;
           created_at?: string;
           id?: string;
+          image_url?: string | null;
           is_ending?: boolean;
           is_free?: boolean;
           number?: number;
@@ -118,6 +124,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "chapters_story_id_fkey";
+            columns: ["story_id"];
+            isOneToOne: false;
+            referencedRelation: "stories";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      follows: {
+        Row: {
+          created_at: string;
+          notified_at: string;
+          seen_at: string;
+          story_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          notified_at?: string;
+          seen_at?: string;
+          story_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          notified_at?: string;
+          seen_at?: string;
+          story_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "follows_story_id_fkey";
             columns: ["story_id"];
             isOneToOne: false;
             referencedRelation: "stories";
@@ -351,6 +389,7 @@ export type Database = {
           description: string;
           genre: string;
           id: string;
+          ongoing: boolean;
           price_coins: number | null;
           published_at: string | null;
           slug: string;
@@ -366,6 +405,7 @@ export type Database = {
           description?: string;
           genre?: string;
           id?: string;
+          ongoing?: boolean;
           price_coins?: number | null;
           published_at?: string | null;
           slug: string;
@@ -381,6 +421,7 @@ export type Database = {
           description?: string;
           genre?: string;
           id?: string;
+          ongoing?: boolean;
           price_coins?: number | null;
           published_at?: string | null;
           slug?: string;
@@ -445,6 +486,24 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      telegram_links: {
+        Row: {
+          chat_id: number;
+          linked_at: string;
+          user_id: string;
+        };
+        Insert: {
+          chat_id: number;
+          linked_at?: string;
+          user_id: string;
+        };
+        Update: {
+          chat_id?: number;
+          linked_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
       };
       unlocks: {
         Row: {
@@ -614,6 +673,17 @@ export type Database = {
       };
       approve_payment: { Args: { p_admin_telegram_id?: number; p_request_id: string }; Returns: Json };
       check_rate_limit: { Args: { p_key: string; p_max: number; p_window_seconds: number }; Returns: boolean };
+      claim_chapter_notifications: {
+        Args: { p_story_id: string };
+        Returns: {
+          chat_id: number;
+          first_new_number: number;
+          first_new_title: string;
+          new_chapters: number;
+          story_slug: string;
+          story_title: string;
+        }[];
+      };
       create_payment_request: {
         Args: { p_product_code: string };
         Returns: {
@@ -642,6 +712,7 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      create_telegram_link_token: { Args: Record<PropertyKey, never>; Returns: string };
       get_chapter: {
         Args: { p_chapter_id: string };
         Returns: {
@@ -650,6 +721,7 @@ export type Database = {
           continues_later: boolean;
           gate: string;
           id: string;
+          image_url: string;
           is_ending: boolean;
           is_free: boolean;
           locked: boolean;
@@ -658,6 +730,7 @@ export type Database = {
           prev_number: number;
           price_coins: number;
           story_id: string;
+          story_ongoing: boolean;
           story_price_coins: number;
           story_slug: string;
           story_title: string;
@@ -676,6 +749,7 @@ export type Database = {
           continues_later: boolean;
           gate: string;
           id: string;
+          image_url: string;
           is_ending: boolean;
           is_free: boolean;
           locked: boolean;
@@ -684,6 +758,7 @@ export type Database = {
           prev_number: number;
           price_coins: number;
           story_id: string;
+          story_ongoing: boolean;
           story_price_coins: number;
           story_slug: string;
           story_title: string;
@@ -709,6 +784,20 @@ export type Database = {
         }[];
       };
       has_access: { Args: { p_chapter_id: string; p_user: string }; Returns: boolean };
+      link_telegram: { Args: { p_chat_id: number; p_token: string }; Returns: boolean };
+      my_story_updates: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          cover_url: string;
+          first_new_number: number;
+          first_new_title: string;
+          genre: string;
+          new_chapters: number;
+          slug: string;
+          story_id: string;
+          title: string;
+        }[];
+      };
       my_wallet_summary: { Args: Record<PropertyKey, never>; Returns: Json };
       reject_payment: {
         Args: { p_admin_telegram_id?: number; p_reason?: string; p_request_id: string };
@@ -718,6 +807,7 @@ export type Database = {
       set_payment_reject_reason: { Args: { p_reason: string; p_request_id: string }; Returns: boolean };
       start_wait_free: { Args: { p_chapter_id: string }; Returns: string };
       submit_payment_request: { Args: { p_request_id: string }; Returns: Json };
+      unlink_telegram_chat: { Args: { p_chat_id: number }; Returns: boolean };
       unlock_chapter: { Args: { p_chapter_id: string }; Returns: Json };
       unlock_story: { Args: { p_story_id: string }; Returns: Json };
     };

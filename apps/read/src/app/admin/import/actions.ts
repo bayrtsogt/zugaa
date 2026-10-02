@@ -1,5 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { notifyFollowers } from "@/lib/notify";
 import { createClient } from "@/lib/supabase/server";
 import { assertAdmin } from "@/lib/auth";
 import { validateImport, type StoryReport } from "@/lib/story-import";
@@ -88,7 +90,11 @@ export async function importStories(text: string, publish: boolean): Promise<Imp
       results.push({ slug: r.slug, title: r.title, ok: false, message: rpcError.message });
       continue;
     }
-    const d = data as { created: boolean; chapters: number; choices: number; placeholders: number };
+    const d = data as { story_id: string; created: boolean; chapters: number; choices: number; placeholders: number };
+    if (publish) {
+      const storyId = d.story_id;
+      after(() => notifyFollowers(storyId).catch((e) => console.error("notify followers", e)));
+    }
     results.push({
       slug: r.slug,
       title: r.title,

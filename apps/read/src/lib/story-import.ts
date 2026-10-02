@@ -4,12 +4,13 @@
  * server action can re-check before writing.
  */
 import { slugify } from "@/lib/slug";
+import { isImageUrl } from "@/lib/image-url";
 
 /** Built-in genres; the admin can add more (pass the live list to the validators). */
 export const DEFAULT_GENRES = ["horror", "thriller", "mystery", "romance", "other"];
 export const AGE_VALUES = ["all", "16", "18"] as const;
 
-export type ImportChoice = { label: string; goto: number };
+export type ImportChoice = { label: string; goto: number; image_url?: string | null };
 export type ImportChapter = {
   number: number;
   title: string;
@@ -17,6 +18,8 @@ export type ImportChapter = {
   free: boolean;
   price_coins: number;
   ending: boolean;
+  /** Only sent when present in the JSON (re-imports keep admin-uploaded images). */
+  image_url?: string | null;
   choices: ImportChoice[];
 };
 /**
@@ -32,6 +35,7 @@ export type ImportStory = {
   price_coins?: number | null;
   wait_free_hours?: number | null;
   cover_url?: string | null;
+  ongoing?: boolean;
   chapters: ImportChapter[];
 };
 
@@ -102,7 +106,8 @@ export function validateStory(raw: unknown, index: number, genres: string[] = DE
   const wait = raw.wait_free_hours == null ? null : posInt(raw.wait_free_hours);
   if (raw.wait_free_hours != null && wait == null) errors.push("«wait_free_hours» эерэг бүхэл тоо эсвэл null байна.");
   const cover = str(raw.cover_url) || null;
-  if (cover && !/^https:\/\//.test(cover)) errors.push("«cover_url» нь https:// хаяг байна.");
+  if (cover && !isImageUrl(cover)) errors.push("«cover_url» нь https:// хаяг байна.");
+  if (raw.ongoing != null && typeof raw.ongoing !== "boolean") errors.push("«ongoing» нь true эсвэл false байна.");
 
   const chaptersRaw = Array.isArray(raw.chapters) ? raw.chapters : null;
   if (!chaptersRaw || chaptersRaw.length === 0) {
@@ -141,8 +146,12 @@ export function validateStory(raw: unknown, index: number, genres: string[] = DE
       if (label.length > 120) warnings.push(`${number}-р бүлэг, сонголт ${j + 1}: шошго урт байна.`);
       if (target == null) errors.push(`${number}-р бүлэг, сонголт ${j + 1}: «goto» бүлгийн дугаар байна.`);
       if (target === number) errors.push(`${number}-р бүлэг: сонголт өөр рүүгээ заасан.`);
-      if (label && target) choices.push({ label, goto: target });
+      const cimg = isObj(ch) && "image_url" in ch ? str(ch.image_url) || null : undefined;
+      if (cimg && !isImageUrl(cimg)) errors.push(`${number}-р бүлэг, сонголт ${j + 1}: «image_url» нь https:// хаяг байна.`);
+      if (label && target) choices.push(cimg === undefined ? { label, goto: target } : { label, goto: target, image_url: cimg });
     });
+    const img = "image_url" in c ? str(c.image_url) || null : undefined;
+    if (img && !isImageUrl(img)) errors.push(`${number}-р бүлэг: «image_url» нь https:// хаяг байна.`);
     chapters.push({
       number,
       title: ctitle,
@@ -150,6 +159,7 @@ export function validateStory(raw: unknown, index: number, genres: string[] = DE
       free: c.free === true,
       price_coins: cprice ?? 40,
       ending: c.ending === true,
+      ...(img === undefined ? {} : { image_url: img }),
       choices,
     });
   });
@@ -213,6 +223,7 @@ export function validateStory(raw: unknown, index: number, genres: string[] = DE
   if (!partial || has("price_coins")) story.price_coins = price;
   if (!partial || has("wait_free_hours")) story.wait_free_hours = wait;
   if (!partial || has("cover_url")) story.cover_url = cover;
+  if (typeof raw.ongoing === "boolean") story.ongoing = raw.ongoing;
   return {
     index,
     title,

@@ -3,6 +3,7 @@ import { useActionState, useMemo, useState } from "react";
 import { Button, Field, GenreArt, Notice, cx, fieldClass } from "@zugaa/ui";
 import { renderMarkdown } from "@/lib/markdown";
 import { slugify } from "@/lib/slug";
+import { ImageUpload } from "./image-upload";
 import { adjustCoins, decidePayment, deleteGenre, saveChapter, saveGenre, saveStory, type AdminState } from "./actions";
 
 function Feedback({ state }: { state: AdminState }) {
@@ -24,6 +25,7 @@ export type StoryFormValues = {
   age_rating: string;
   price_coins: number | null;
   wait_free_hours: number | null;
+  ongoing: boolean;
 };
 
 export function StoryForm({ story, genres }: { story?: StoryFormValues; genres: Array<{ slug: string; label: string }> }) {
@@ -65,13 +67,21 @@ export function StoryForm({ story, genres }: { story?: StoryFormValues; genres: 
         <Field label="Үнэгүй хүлээх цаг" htmlFor="wait_free_hours" hint="Хоосон бол хүлээж унших боломжгүй">
           <input id="wait_free_hours" name="wait_free_hours" inputMode="numeric" defaultValue={story?.wait_free_hours ?? ""} className={fieldClass} />
         </Field>
-        <Field label="Хавтасны зураг (https://…)" htmlFor="cover_url" hint="Хоосон бол өнгө + гарчиг">
-          <input id="cover_url" name="cover_url" type="url" defaultValue={story?.cover_url ?? ""} className={fieldClass} />
-        </Field>
         <Field label="Хавтасны өнгө" htmlFor="cover_color">
           <input id="cover_color" name="cover_color" type="color" defaultValue={story?.cover_color ?? "#3b2a2a"} className={cx(fieldClass, "p-1")} />
         </Field>
       </div>
+      <div className="space-y-1">
+        <span className="text-sm font-medium">Хавтасны зураг</span>
+        <p className="text-sm text-muted">3:4 босоо зураг. Хоосон бол төрлийн зураас-зураг харагдана.</p>
+        <div className="w-40">
+          <ImageUpload name="cover_url" folder="covers" value={story?.cover_url ?? null} label="Хавтасны зураг" aspect="aspect-[3/4]" />
+        </div>
+      </div>
+      <label className="inline-flex min-h-11 items-center gap-2 text-sm">
+        <input type="checkbox" name="ongoing" defaultChecked={story?.ongoing ?? false} className="h-5 w-5 accent-[var(--zg-accent)]" />
+        Үргэлжилж байгаа (цувралаар бичигдэж байна — сүүлийн бүлэгт «Үргэлжлэл удахгүй» харагдана)
+      </label>
       <Feedback state={state} />
       <Button type="submit" disabled={pending}>
         {pending ? "Хадгалж байна…" : "Хадгалах"}
@@ -92,14 +102,15 @@ export type ChapterFormValues = {
   is_ending: boolean;
   price_coins: number;
   published: boolean;
-  choices: Array<{ label: string; target_number: number }>;
+  image_url: string | null;
+  choices: Array<{ label: string; target_number: number; image_url: string | null }>;
 };
 
 export function ChapterForm({ chapter, numbers }: { chapter: ChapterFormValues; numbers: number[] }) {
   const [state, action, pending] = useActionState(saveChapter, {});
   const [content, setContent] = useState(chapter.content);
   const [tab, setTab] = useState<"edit" | "preview">("edit");
-  const [choices, setChoices] = useState(chapter.choices);
+  const [choices, setChoices] = useState(() => chapter.choices.map((c, i) => ({ ...c, uid: i })));
   const html = useMemo(() => (tab === "preview" ? renderMarkdown(content) : ""), [content, tab]);
 
   return (
@@ -128,6 +139,14 @@ export function ChapterForm({ chapter, numbers }: { chapter: ChapterFormValues; 
             {String(label)}
           </label>
         ))}
+      </div>
+
+      <div className="space-y-1">
+        <span className="text-sm font-medium">Бүлгийн зураг</span>
+        <p className="text-sm text-muted">Гарчгийн доор 3:2 хэлбэрээр харагдана (түгжээтэй бүлэгт ч урьдчилж харагдана).</p>
+        <div className="max-w-sm">
+          <ImageUpload name="image_url" folder="chapters" value={chapter.image_url} label="Бүлгийн зураг" />
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -171,8 +190,18 @@ export function ChapterForm({ chapter, numbers }: { chapter: ChapterFormValues; 
       <fieldset className="space-y-3">
         <legend className="text-sm font-medium">Сонголт (салаалсан өгүүллэг)</legend>
         {choices.length === 0 ? <p className="text-sm text-muted">Сонголтгүй бол «Дараагийн бүлэг» харагдана.</p> : null}
+        {choices.length > 0 ? <p className="text-sm text-muted">Зурагтай бол сонголтууд зурагтай карт болж харагдана (4:3).</p> : null}
         {choices.map((c, i) => (
-          <div key={i} className="flex gap-2">
+          <div key={c.uid} className="flex flex-wrap items-start gap-2 sm:flex-nowrap">
+            <ImageUpload
+              name="choice_image"
+              folder="choices"
+              value={c.image_url}
+              onChange={(url) => setChoices((all) => all.map((x) => (x.uid === c.uid ? { ...x, image_url: url } : x)))}
+              label={`Сонголт ${i + 1}-ийн зураг`}
+              aspect="aspect-[4/3]"
+              compact
+            />
             <input
               name="choice_label"
               aria-label={`Сонголт ${i + 1}`}
@@ -201,7 +230,9 @@ export function ChapterForm({ chapter, numbers }: { chapter: ChapterFormValues; 
         ))}
         <button
           type="button"
-          onClick={() => setChoices([...choices, { label: "", target_number: numbers[0] ?? 1 }])}
+          onClick={() =>
+            setChoices([...choices, { label: "", target_number: numbers[0] ?? 1, image_url: null, uid: Math.max(-1, ...choices.map((x) => x.uid)) + 1 }])
+          }
           className="min-h-11 text-sm text-accent underline-offset-4 hover:underline"
           disabled={numbers.length === 0}
         >

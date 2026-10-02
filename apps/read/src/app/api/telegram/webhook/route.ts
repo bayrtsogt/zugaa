@@ -18,6 +18,8 @@ import { syncTelegramDecision, telegram } from "@/lib/telegram";
 /**
  * Telegram webhook: admin approves / rejects payment requests with inline
  * buttons, and can reply to a rejected request's message with a reason.
+ * Readers link their chat for new-chapter messages with /start <token>
+ * (deep link from /me) and unlink with /stop.
  */
 export async function POST(request: NextRequest) {
   const expected = serverEnv.telegramWebhookSecret();
@@ -29,6 +31,7 @@ export async function POST(request: NextRequest) {
   const update = (await request.json().catch(() => null)) as TelegramUpdate | null;
   try {
     if (update?.callback_query) await onCallback(update.callback_query);
+    else if (update?.message && isPrivateCommand(update.message)) await onReaderCommand(update.message);
     else if (update?.message) await onMessage(update.message);
   } catch (e) {
     console.error("telegram webhook", e);
@@ -73,6 +76,33 @@ async function onCallback(cq: TelegramCallbackQuery) {
     // Always answer so the button stops spinning.
     await tg?.answerCallbackQuery(cq.id, answer || undefined).catch(() => {});
   }
+}
+
+function isPrivateCommand(m: TelegramMessage): boolean {
+  return (m.chat.type === undefined || m.chat.type === "private") && /^\/(start|stop)\b/.test(m.text ?? "");
+}
+
+/** Reader links (/start <token>) or unlinks (/stop) new-chapter notifications. */
+async function onReaderCommand(m: TelegramMessage) {
+  const tg = telegram();
+  const db = createServiceClient();
+  const [command, arg = ""] = (m.text ?? "").trim().split(/\s+/, 2);
+  if (command === "/stop") {
+    await db.rpc("unlink_telegram_chat", { p_chat_id: m.chat.id });
+    await tg?.sendMessage(m.chat.id, "Мэдэгдэл зогслоо. Дахин авах бол Зугаа → Миний хэсгээс Telegram-аа холбоно уу.");
+    return;
+  }
+  if (!/^[0-9a-f]{32}$/.test(arg)) {
+    await tg?.sendMessage(m.chat.id, "Сайн байна уу! Шинэ бүлгийн мэдэгдэл авах бол Зугаа → Миний хэсгээс «Telegram холбох» товчийг дарна уу.");
+    return;
+  }
+  const { data: ok } = await db.rpc("link_telegram", { p_token: arg, p_chat_id: m.chat.id });
+  await tg?.sendMessage(
+    m.chat.id,
+    ok
+      ? "✅ Холбогдлоо! Таны дагаж буй өгүүллэгт шинэ бүлэг гармагц энд мэдэгдэнэ. Зогсоох бол /stop."
+      : "Холбоосны хугацаа дууссан байна. Зугаа → Миний хэсгээс дахин оролдоно уу.",
+  );
 }
 
 /** Admin replies to a rejected request's message → store it as the reason. */

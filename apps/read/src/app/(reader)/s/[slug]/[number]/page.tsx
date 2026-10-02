@@ -7,6 +7,7 @@ import { ReaderChrome } from "@/components/reader/reader-chrome";
 import { LockPanel } from "@/components/reader/lock-panel";
 import { GatePanel } from "@/components/reader/gate-panel";
 import { ChapterEnd } from "@/components/reader/chapter-end";
+import { isFollowing } from "@/lib/follows";
 
 type Params = { params: Promise<{ slug: string; number: string }> };
 
@@ -25,6 +26,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     description: `«${chapter.story_title}» өгүүллэгийн ${chapter.number}-р бүлэг. Зугаа дээр уншаарай.`,
     alternates: { canonical: `/s/${slug}/${chapter.number}` },
     robots: chapter.locked || chapter.gate ? { index: false } : undefined,
+    openGraph: chapter.image_url && !chapter.gate ? { images: [{ url: chapter.image_url }] } : undefined,
   };
 }
 
@@ -37,7 +39,10 @@ export default async function ReaderPage({ params }: Params) {
 
   const path = `/s/${slug}/${chapter.number}`;
   const open = !chapter.locked && !chapter.gate;
-  const progress = user && open ? await getProgress(user.id, chapter.story_id) : null;
+  const [progress, following] = await Promise.all([
+    user && open ? getProgress(user.id, chapter.story_id) : null,
+    user && open && chapter.continues_later ? isFollowing(user.id, chapter.story_id) : false,
+  ]);
   const initialPct = progress?.chapter_id === chapter.id ? Number(progress.scroll_pct) : 0;
   const html = chapter.content ? renderMarkdown(chapter.content) : "";
 
@@ -57,6 +62,13 @@ export default async function ReaderPage({ params }: Params) {
             <h1 className="font-display text-2xl leading-tight sm:text-3xl">{chapter.title}</h1>
           </header>
 
+          {chapter.image_url && !chapter.gate ? (
+            <figure className="relative -mx-5 mb-8 aspect-[3/2] overflow-hidden bg-line sm:mx-0 sm:rounded-md">
+              {/* eslint-disable-next-line @next/next/no-img-element -- storage image in a fixed aspect box (no layout shift, scroll restore stays exact) */}
+              <img src={chapter.image_url} alt="" fetchPriority="high" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+            </figure>
+          ) : null}
+
           {chapter.gate ? (
             <GatePanel gate={chapter.gate} path={path} storyHref={`/s/${slug}`} />
           ) : (
@@ -75,7 +87,7 @@ export default async function ReaderPage({ params }: Params) {
             </div>
           ) : (
             <footer className="mt-12 border-t border-line pt-8">
-              <ChapterEnd chapter={chapter} />
+              <ChapterEnd chapter={chapter} following={following} />
             </footer>
           )}
         </article>

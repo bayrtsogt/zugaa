@@ -15,11 +15,13 @@ export type StoryCard = {
   price_coins: number | null;
   wait_free_hours: number | null;
   published_at: string | null;
+  /** A serial still being written. */
+  ongoing: boolean;
   genre_info: { label: string; art: string } | null;
 };
 
 const STORY_COLUMNS =
-  "id, slug, title, description, cover_url, cover_color, genre, age_rating, status, price_coins, wait_free_hours, published_at, genre_info:genres(label, art)";
+  "id, slug, title, description, cover_url, cover_color, genre, age_rating, status, price_coins, wait_free_hours, published_at, ongoing, genre_info:genres(label, art)";
 
 export async function listStories(opts: { genre?: string; q?: string; limit?: number } = {}): Promise<StoryCard[]> {
   const supabase = await createClient();
@@ -65,7 +67,7 @@ export const getStoryChapters = cache(async (storyId: string): Promise<ChapterLi
   return data ?? [];
 });
 
-export type Choice = { label: string; target_number: number };
+export type Choice = { label: string; target_number: number; image_url: string | null };
 
 export type ChapterView = {
   id: string;
@@ -85,8 +87,11 @@ export type ChapterView = {
   prev_number: number | null;
   next_number: number | null;
   choices: Choice[] | null;
-  /** Branch point whose next chapters are not published yet (serial import). */
+  /** Next chapters are not published yet (serial import, or the end of an ongoing story). */
   continues_later: boolean;
+  /** Chapter illustration; shown on locked chapters too (age-gated ones excluded). */
+  image_url: string | null;
+  story_ongoing: boolean;
   wait_free_hours: number | null;
   wait_free_ends_at: string | null;
   wait_free_other_chapter: number | null;

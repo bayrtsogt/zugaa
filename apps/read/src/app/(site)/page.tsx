@@ -5,10 +5,12 @@ import { getUser } from "@/lib/auth";
 import { getContinueReading, getNewChapters, listStories } from "@/lib/content";
 import { getGenres } from "@/lib/genres";
 import { StoryList } from "@/components/story-list";
+import { getStoryUpdates } from "@/lib/follows";
 
 export default async function HomePage() {
   const user = await getUser();
-  const [continueItems, newChapters, stories, genres] = await Promise.all([
+  const [updates, continueItems, newChapters, stories, genres] = await Promise.all([
+    user ? getStoryUpdates() : Promise.resolve([]),
     user ? getContinueReading(user.id, 3) : Promise.resolve([]),
     getNewChapters(5),
     listStories({ limit: 8 }),
@@ -26,6 +28,31 @@ export default async function HomePage() {
         <p className="mt-3 text-muted">Монгол өгүүллэг, бүлэг бүлгээр</p>
         <DrawnArrow className="absolute right-0 top-8 h-20 w-24 text-ink sm:right-6" />
       </header>
+
+      {updates.length > 0 ? (
+        <section aria-labelledby="updates" className="rounded-md border border-ink px-4 py-4">
+          <h2 id="updates" className="mb-3 font-display text-xl">
+            Дагаж буй өгүүллэгт шинэ бүлэг
+          </h2>
+          <ul className="space-y-3">
+            {updates.map((u) => (
+              <li key={u.story_id}>
+                <Link href={`/s/${u.slug}/${u.first_new_number}`} className="group flex items-center gap-4">
+                  <Cover title={u.title} genre={genres.find((g) => g.slug === u.genre)?.art ?? "other"} src={u.cover_url} className="w-12 shrink-0" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-display text-lg group-hover:underline group-hover:underline-offset-4">{u.title}</span>
+                    <span className="block truncate text-sm text-muted">
+                      {u.first_new_number}. {u.first_new_title}
+                      {u.new_chapters > 1 ? ` · +${u.new_chapters - 1} бүлэг` : ""}
+                    </span>
+                  </span>
+                  <span className="shrink-0 rounded-full bg-accent px-2.5 py-0.5 text-sm text-paper">Шинэ</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {continueItems.length > 0 ? (
         <section aria-labelledby="continue">

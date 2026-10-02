@@ -94,3 +94,14 @@ Where the spec was ambiguous I chose the simplest option and recorded it here.
 - No OpenNext incremental cache (R2) is configured: every page depends on the reader's session/lock state and is
   rendered per request. Static assets are served by Workers Assets.
 - **Serial (batch) import.** A JSON without `title` is a batch for the existing story with that `slug`: only the keys present are updated, chapters are upserted by number. A choice pointing at a chapter that is not written yet creates a hidden draft placeholder; readers don't see that choice and get «Үргэлжлэл удахгүй гарна» (`continues_later`) instead. Admins can download any story as import-ready JSON («JSON татах») to fix and re-import.
+- **Images.** Covers, chapter images (3:2, under the title) and choice images (4:3 cards) live in the public Supabase
+  Storage bucket `media`; only admins can write (storage policies). The admin browser downscales to ≤1600 px WebP and
+  uploads directly (no image bytes through the Worker). Fixed aspect boxes keep scroll-position restore exact. A chapter
+  image is a teaser and shows on locked chapters too, but not behind the 18+ gate. JSON re-imports keep images unless the
+  JSON sets `image_url`.
+- **Follows and notifications.** Readers follow a story with a button; starting an ongoing story follows it
+  automatically (unfollow on /me). New chapters show on the home page until the reader reads that story. Telegram is the
+  push channel (no email sending service is configured): /me → «Telegram холбох» opens the bot with a one-time token;
+  `/start <token>` links the chat, `/stop` unlinks. Publishing (import, chapter save, story publish) claims due followers
+  in one statement (`follows.notified_at`) and messages them after the response (`after()`), so nobody gets a
+  duplicate.

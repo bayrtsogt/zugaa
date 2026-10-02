@@ -17,6 +17,7 @@ createServer(async (req, res) => {
   const params = body ? JSON.parse(body) : {};
   calls.push({ method, params });
   let result = true;
+  if (method === "getMe") result = { id: 1, is_bot: true, first_name: "Зугаа", username: "zugaa_test_bot" };
   if (method === "sendMessage") {
     result = { message_id: nextMessageId++, chat: { id: Number(params.chat_id) }, text: params.text };
   }
