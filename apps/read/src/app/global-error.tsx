@@ -3,7 +3,7 @@
 export default function GlobalError({ reset }: { error: Error; reset: () => void }) {
   return (
     <html lang="mn">
-      <body style={{ background: "#f8f5ef", color: "#1d1a16", fontFamily: "Georgia, serif", padding: "4rem 1rem" }}>
+      <body style={{ background: "#f8f5ef", color: "#1d1a16", fontFamily: "system-ui, sans-serif", padding: "4rem 1rem" }}>
         <main style={{ maxWidth: "42rem", margin: "0 auto" }}>
           <h1>Алдаа гарлаа</h1>
           <p>Хуудсыг ачаалж чадсангүй.</p>

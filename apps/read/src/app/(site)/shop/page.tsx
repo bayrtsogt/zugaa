@@ -25,7 +25,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <h1 className="font-serif text-2xl">Coin, эрх авах</h1>
+        <h1 className="font-display text-2xl">Coin, эрх авах</h1>
         {wallet ? (
           <p className="text-muted">
             Үлдэгдэл: <span className="text-ink">{formatCoins(wallet.balance_coins)}</span>

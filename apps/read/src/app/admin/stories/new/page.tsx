@@ -12,7 +12,7 @@ export default async function NewStory() {
       <Link href="/admin/stories" className="text-sm text-accent">
         ← Өгүүллэг
       </Link>
-      <h1 className="font-serif text-2xl">Шинэ өгүүллэг</h1>
+      <h1 className="font-display text-2xl">Шинэ өгүүллэг</h1>
       <StoryForm genres={await getGenres()} />
     </div>
   );

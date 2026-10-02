@@ -7,7 +7,7 @@ import { BirthYearForm } from "./action-forms";
 export function GatePanel({ gate, path, storyHref }: { gate: AgeGate; path: string; storyHref: string }) {
   return (
     <section aria-labelledby="gate-title" className="mx-auto max-w-sm space-y-5 py-6">
-      <h2 id="gate-title" className="text-center font-serif text-xl">
+      <h2 id="gate-title" className="text-center font-display text-xl">
         18+
       </h2>
       <p className="text-center text-muted">{AGE_GATE_TEXT[gate]}</p>

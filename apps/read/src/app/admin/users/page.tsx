@@ -14,7 +14,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
 
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-2xl">Хэрэглэгч</h1>
+      <h1 className="font-display text-2xl">Хэрэглэгч</h1>
       <form role="search" action="/admin/users">
         <label htmlFor="q" className="sr-only">
           Имэйлээр хайх

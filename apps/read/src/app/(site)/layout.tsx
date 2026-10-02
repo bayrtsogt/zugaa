@@ -10,7 +10,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       </a>
       <header>
         <div className="mx-auto flex h-16 max-w-page items-center justify-between gap-4 px-5">
-          <Link href="/" className="flex min-h-11 items-center font-serif text-xl font-semibold tracking-tight">
+          <Link href="/" className="flex min-h-11 items-center font-display text-xl font-semibold tracking-tight">
             Зугаа
           </Link>
           <div className="flex items-center gap-2">

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { appUrl } from "@/lib/env";
-import { inter, literata } from "./fonts";
+import { adventPro, openSans } from "./fonts";
 import { READER_PREFS_SCRIPT } from "@/components/reader-prefs";
 import "./globals.css";
 
@@ -24,7 +24,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="mn" className={`${literata.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="mn" className={`${adventPro.variable} ${openSans.variable}`} suppressHydrationWarning>
       <head>
         {/* Applies stored theme / text size before first paint: no flash, no layout shift. */}
         <script dangerouslySetInnerHTML={{ __html: READER_PREFS_SCRIPT }} />

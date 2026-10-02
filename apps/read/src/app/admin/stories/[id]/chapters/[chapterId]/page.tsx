@@ -63,7 +63,7 @@ export default async function EditChapter({
       <Link href={`/admin/stories/${storyId}`} className="text-sm text-accent">
         ← {story.title}
       </Link>
-      <h1 className="font-serif text-2xl">{chapterId === "new" ? "Шинэ бүлэг" : `${values.number}. ${values.title}`}</h1>
+      <h1 className="font-display text-2xl">{chapterId === "new" ? "Шинэ бүлэг" : `${values.number}. ${values.title}`}</h1>
       {sp.saved ? <Notice tone="ok">Хадгаллаа.</Notice> : null}
       <ChapterForm chapter={values} numbers={numbers} />
       {values.id ? (

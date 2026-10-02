@@ -23,8 +23,11 @@
   --color-current: currentColor;
   --color-cover-ink: #f4eee3;
 
-  --font-serif: var(--font-literata), "PT Serif", Georgia, serif;
-  --font-sans: var(--font-inter), "PT Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Headings, titles, logo, choices. */
+  --font-display: var(--font-advent), "Arial Narrow", system-ui, sans-serif;
+  /* UI and long-form reading text. */
+  --font-sans: var(--font-open-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-read: var(--font-sans);
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   /* Type scale (1.2 minor third, rounded) */
@@ -71,6 +74,10 @@
     color: var(--zg-ink);
     font-family: var(--font-sans);
   }
+  /* Advent Pro is light at 400; headings default to semibold (font-* utilities still override). */
+  .font-display {
+    font-weight: 600;
+  }
   :focus-visible {
     outline: 2px solid var(--zg-focus);
     outline-offset: 2px;
@@ -91,7 +98,7 @@
 @layer components {
   /* Long-form reading text. */
   .prose-read {
-    font-family: var(--font-serif);
+    font-family: var(--font-read);
     font-size: var(--zg-read-size);
     line-height: var(--zg-read-leading);
     max-width: var(--zg-read-measure);

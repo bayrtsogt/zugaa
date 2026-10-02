@@ -19,7 +19,7 @@ export default async function AdminStories({ searchParams }: { searchParams: Pro
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="font-serif text-2xl">Өгүүллэг</h1>
+        <h1 className="font-display text-2xl">Өгүүллэг</h1>
         <div className="flex gap-2">
           <Link href="/admin/import" className={buttonClass("secondary", "sm")}>
             JSON оруулах

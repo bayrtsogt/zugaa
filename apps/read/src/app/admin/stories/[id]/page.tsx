@@ -36,7 +36,7 @@ export default async function EditStory({ params }: { params: Promise<{ id: stri
         <div className="flex flex-wrap items-start gap-5">
           <Cover title={story.title} genre={story.genre_info?.art ?? "other"} src={story.cover_url} className="w-24 shrink-0" />
           <div className="min-w-0 flex-1 space-y-3">
-            <h1 className="font-serif text-2xl">{story.title}</h1>
+            <h1 className="font-display text-2xl">{story.title}</h1>
             <p className={published ? "text-sm text-ok" : "text-sm text-muted"}>{published ? "Нийтлэгдсэн" : "Ноорог"}</p>
             <div className="flex flex-wrap gap-2">
               <form action={setStoryStatus}>

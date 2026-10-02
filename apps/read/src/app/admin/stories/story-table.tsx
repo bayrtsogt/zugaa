@@ -60,7 +60,7 @@ export function StoryTable({ rows }: { rows: Row[] }) {
             />
             <Link href={`/admin/stories/${s.id}`} className="flex min-h-14 flex-1 items-center justify-between gap-4 py-3 hover:text-accent">
               <span className="min-w-0">
-                <span className="block truncate font-serif text-lg">{s.title}</span>
+                <span className="block truncate font-display text-lg">{s.title}</span>
                 <span className="block text-sm text-muted">{s.meta}</span>
               </span>
               <span className={s.status === "published" ? "text-sm text-ok" : "text-sm text-muted"}>

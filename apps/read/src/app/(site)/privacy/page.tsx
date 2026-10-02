@@ -8,7 +8,7 @@ export default function PrivacyPage() {
   const email = contactEmail();
   return (
     <article className="prose-read space-y-4 pb-8 text-base">
-      <h1 className="font-serif text-3xl font-bold tracking-tight">Нууцлалын бодлого</h1>
+      <h1 className="font-display text-3xl font-bold tracking-tight">Нууцлалын бодлого</h1>
       <p>Зугаа («бид») таны хувийн мэдээллийг зөвхөн үйлчилгээ үзүүлэх зорилгоор, хамгийн бага хэмжээгээр цуглуулна.</p>
 
       <h2>Бид юу цуглуулдаг вэ</h2>

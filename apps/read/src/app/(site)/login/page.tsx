@@ -25,7 +25,7 @@ export default async function LoginPage({
       {/* Welcome panel: always dark, like a book's endpaper. */}
       <section className="rounded-md bg-[#141414] px-6 pb-7 pt-6 text-[#f4f2ed]">
         <WelcomeDoodles className="mx-auto h-36 w-full max-w-xs text-[#f4f2ed]" />
-        <h1 className="mt-4 text-center font-serif text-[1.75rem] leading-tight">Зугаа-д тавтай морил</h1>
+        <h1 className="mt-4 text-center font-display text-[1.75rem] leading-tight">Зугаа-д тавтай морил</h1>
         <p className="mt-3 text-center text-sm leading-relaxed text-[#bdb8ae]">
           Үнэгүй бүлгүүдийг нэвтрэлгүй уншиж болно. Бүлэг нээх, эрх авах, уншсан газраа хадгалахын тулд нэвтэрнэ үү.
         </p>

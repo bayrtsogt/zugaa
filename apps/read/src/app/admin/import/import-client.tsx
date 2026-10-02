@@ -152,7 +152,7 @@ export function ImportClient({
               return (
                 <li key={r.index} className="space-y-2 py-3">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <span className="font-serif text-lg">{r.title || r.slug || `#${r.index + 1}`}</span>
+                    <span className="font-display text-lg">{r.title || r.slug || `#${r.index + 1}`}</span>
                     <span className={cx("text-sm", r.errors.length ? "text-accent" : "text-ok")}>
                       {r.errors.length ? `${r.errors.length} алдаа` : "Бэлэн"}
                       {check && !r.errors.length ? (exists ? (r.partial ? " · бүлэг нэмэгдэнэ" : " · шинэчлэгдэнэ") : " · шинэ") : ""}

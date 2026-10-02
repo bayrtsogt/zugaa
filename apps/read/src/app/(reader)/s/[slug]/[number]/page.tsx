@@ -54,7 +54,7 @@ export default async function ReaderPage({ params }: Params) {
         <article className="mx-auto" style={{ maxWidth: "var(--zg-read-measure)" }}>
           <header className="mb-8 space-y-2">
             <p className="text-sm text-muted">Бүлэг {chapter.number}</p>
-            <h1 className="font-serif text-2xl leading-tight sm:text-3xl">{chapter.title}</h1>
+            <h1 className="font-display text-2xl leading-tight sm:text-3xl">{chapter.title}</h1>
           </header>
 
           {chapter.gate ? (

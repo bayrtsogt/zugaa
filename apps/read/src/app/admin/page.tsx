@@ -11,7 +11,7 @@ export default async function AdminHome() {
   ]);
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-2xl">Админ</h1>
+      <h1 className="font-display text-2xl">Админ</h1>
       <ul className="divide-y divide-line border-y border-line">
         <li>
           <Link href="/admin/payments" className="flex min-h-14 items-center justify-between py-3 hover:text-accent">

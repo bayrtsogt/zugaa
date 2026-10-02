@@ -79,8 +79,10 @@ Where the spec was ambiguous I chose the simplest option and recorded it here.
 - Google's `cyrillic` subset does **not** contain Ө ө Ү ү (U+04E8/9, U+04AE/F); they are in `cyrillic-ext`.
   To avoid two font requests for every page, each face is a **single custom subset** (Basic Latin + U+0400–045F +
   Ө ө Ү ү + typographic punctuation + ₮) fetched from Google Fonts with `text=`, then instanced with fontTools
-  (optical size pinned). Coverage was verified glyph by glyph. Body: **Literata** (43 KB, italic 25 KB). UI: **Inter**
-  (33 KB). Both self-hosted via `next/font/local` with metric-matched fallbacks (no layout shift).
+  (weight axis trimmed). Coverage was verified glyph by glyph. Headings/titles (`font-display`): **Advent Pro**
+  400–800 (30 KB, semibold by default). UI and reading text: **Open Sans** 400–700 (32 KB, italic 35 KB; it has no ₮,
+  which falls back to the system font). Self-hosted via `next/font/local` with metric-matched fallbacks — no request
+  to Google at runtime.
 
 ## Deployment
 

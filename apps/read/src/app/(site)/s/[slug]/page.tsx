@@ -47,7 +47,7 @@ export default async function StoryPage({ params }: Params) {
       <header className="flex gap-5">
         <Cover title={story.title} genre={story.genre_info?.art ?? "other"} src={story.cover_url} className="w-28 shrink-0 sm:w-36" priority />
         <div className="min-w-0 space-y-2 pt-1">
-          <h1 className="font-serif text-3xl font-bold leading-tight tracking-tight sm:text-4xl">{story.title}</h1>
+          <h1 className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">{story.title}</h1>
           <StoryMeta story={story} />
           <p className="text-sm text-muted">
             {chapters.length} бүлэг
@@ -56,7 +56,7 @@ export default async function StoryPage({ params }: Params) {
         </div>
       </header>
 
-      <p className="font-serif text-lg leading-relaxed">{story.description}</p>
+      <p className="text-lg leading-relaxed">{story.description}</p>
 
       {story.age_rating === "18" ? (
         <p className="text-sm text-muted">18 наснаас дээш уншигчдад. Эхлэхийн өмнө төрсөн оноо нэг удаа асууна.</p>

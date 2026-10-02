@@ -76,7 +76,7 @@ export function PaymentScreen(p: Props) {
   if (status === "approved") {
     return (
       <div className="space-y-5" role="status">
-        <h1 className="font-serif text-2xl">Эрх нээгдлээ</h1>
+        <h1 className="font-display text-2xl">Эрх нээгдлээ</h1>
         <p className="text-muted">
           {p.productTitle} баталгаажлаа.{" "}
           {p.productKind === "coin_pack" ? "Coin таны хэтэвчинд орлоо." : p.productKind === "subscription" ? "Бүх бүлэг нээлттэй." : "Өгүүллэг бүтнээрээ нээгдлээ."}
@@ -91,7 +91,7 @@ export function PaymentScreen(p: Props) {
   if (status === "rejected") {
     return (
       <div className="space-y-5" role="status">
-        <h1 className="font-serif text-2xl">Төлбөр баталгаажсангүй</h1>
+        <h1 className="font-display text-2xl">Төлбөр баталгаажсангүй</h1>
         <p className="text-muted">
           {p.refCode} кодтой гүйлгээ олдсонгүй эсвэл дүн таарсангүй.
           {reason ? (
@@ -112,7 +112,7 @@ export function PaymentScreen(p: Props) {
   if (status === "expired") {
     return (
       <div className="space-y-5">
-        <h1 className="font-serif text-2xl">Хугацаа дууссан</h1>
+        <h1 className="font-display text-2xl">Хугацаа дууссан</h1>
         <p className="text-muted">Энэ төлбөрийн хүсэлт 24 цагийн дотор баталгаажаагүй тул хүчингүй боллоо.</p>
         <Link href="/shop" className={buttonClass("secondary", "md")}>
           Шинээр авах
@@ -124,7 +124,7 @@ export function PaymentScreen(p: Props) {
   if (status === "submitted") {
     return (
       <div className="space-y-5" role="status" aria-live="polite">
-        <h1 className="font-serif text-2xl">Шалгаж байна</h1>
+        <h1 className="font-display text-2xl">Шалгаж байна</h1>
         <p>
           {p.refCode} · {formatMnt(p.amountMnt)}
         </p>
@@ -146,7 +146,7 @@ export function PaymentScreen(p: Props) {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="font-serif text-2xl">Төлбөр</h1>
+        <h1 className="font-display text-2xl">Төлбөр</h1>
         <p className="text-muted">{p.productTitle}</p>
       </div>
 

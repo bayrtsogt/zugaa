@@ -32,7 +32,7 @@ export default async function MePage() {
   return (
     <div className="space-y-10">
       <header className="space-y-1">
-        <h1 className="font-serif text-2xl">{profile?.display_name || "Миний"}</h1>
+        <h1 className="font-display text-2xl">{profile?.display_name || "Миний"}</h1>
         {user.email ? <p className="text-sm text-muted">{user.email}</p> : null}
       </header>
 
@@ -43,7 +43,7 @@ export default async function MePage() {
         <dl className="grid grid-cols-2 gap-4 border-y border-line py-4">
           <div>
             <dt className="text-sm text-muted">Үлдэгдэл</dt>
-            <dd className="font-serif text-2xl tabular-nums">{formatCoins(wallet?.balance_coins ?? 0)}</dd>
+            <dd className="font-display text-2xl tabular-nums">{formatCoins(wallet?.balance_coins ?? 0)}</dd>
           </div>
           <div>
             <dt className="text-sm text-muted">Эрх</dt>
@@ -127,7 +127,7 @@ export default async function MePage() {
               <li key={h.story.slug}>
                 <Link href={`/s/${h.story.slug}/${h.chapter.number}`} className="flex min-h-14 items-baseline justify-between gap-4 py-3 hover:text-accent">
                   <span className="min-w-0">
-                    <span className="block truncate font-serif">{h.story.title}</span>
+                    <span className="block truncate font-display">{h.story.title}</span>
                     <span className="block truncate text-sm text-muted">
                       Бүлэг {h.chapter.number} · {h.chapter.title}
                     </span>

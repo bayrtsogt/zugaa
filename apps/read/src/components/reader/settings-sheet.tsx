@@ -95,7 +95,7 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
                 onClick={() => update({ fs: s.value })}
                 className={optionClass(prefs?.fs === s.value)}
               >
-                <span className="font-serif" style={{ fontSize: s.px }} aria-hidden>
+                <span className="font-read" style={{ fontSize: s.px }} aria-hidden>
                   Аа
                 </span>
               </button>

@@ -11,7 +11,7 @@ export default async function ImportPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="font-serif text-2xl">Өгүүллэг оруулах (JSON)</h1>
+        <h1 className="font-display text-2xl">Өгүүллэг оруулах (JSON)</h1>
         <p className="text-muted">
           JSON-оо буулгах эсвэл нэг болон хэд хэдэн .json файл сонгоно. «Шалгах» товч бүх өгүүллэгийг шалгана, «Оруулах»
           товч алдаагүйг нь нэг дор оруулна. Ижил slug-тай өгүүллэг байвал бүлгүүдийг нь шинэчилнэ (устгахгүй,

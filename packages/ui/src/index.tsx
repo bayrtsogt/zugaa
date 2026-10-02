@@ -134,7 +134,7 @@ export function Rule({ className }: { className?: string }) {
 export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
     <div className="mb-4 flex items-baseline justify-between gap-4">
-      <h2 className="font-serif text-xl font-semibold tracking-tight text-ink">{children}</h2>
+      <h2 className="font-display text-xl font-semibold tracking-tight text-ink">{children}</h2>
       {action}
     </div>
   );

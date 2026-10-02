@@ -19,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="border-b border-line">
         <div className="mx-auto flex min-h-14 max-w-wide flex-wrap items-center gap-x-4 px-4">
           <Link href="/admin" className="flex min-h-11 items-baseline gap-2">
-            <span className="font-serif text-lg">Зугаа</span>
+            <span className="font-display text-lg">Зугаа</span>
             <span className="text-sm text-muted">Админ</span>
           </Link>
           <nav aria-label="Админ цэс" className="flex flex-1 items-center gap-1 overflow-x-auto">

@@ -15,7 +15,7 @@ export function ChapterEnd({ chapter }: { chapter: ChapterView }) {
         <ul className="space-y-2">
           {choices.map((c) => (
             <li key={`${c.target_number}-${c.label}`}>
-              <Link href={`${base}/${c.target_number}`} className={buttonClass("secondary", "md", "w-full justify-start text-left font-serif")}>
+              <Link href={`${base}/${c.target_number}`} className={buttonClass("secondary", "md", "w-full justify-start text-left font-display")}>
                 {c.label}
               </Link>
             </li>
@@ -28,7 +28,7 @@ export function ChapterEnd({ chapter }: { chapter: ChapterView }) {
   if (chapter.continues_later && !chapter.is_ending) {
     return (
       <div className="space-y-4 text-center">
-        <p className="font-serif text-xl">Үргэлжлэл удахгүй гарна</p>
+        <p className="font-display text-xl">Үргэлжлэл удахгүй гарна</p>
         <p className="text-sm text-muted">Дараагийн бүлгүүд бичигдэж байна. Таны уншсан газар хадгалагдсан.</p>
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Link href={base} className={buttonClass("secondary", "md")}>
@@ -45,7 +45,7 @@ export function ChapterEnd({ chapter }: { chapter: ChapterView }) {
   if (chapter.is_ending || chapter.next_number == null) {
     return (
       <div className="space-y-4 text-center">
-        <p className="font-serif text-xl">Төгсгөл</p>
+        <p className="font-display text-xl">Төгсгөл</p>
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Link href={base} className={buttonClass("secondary", "md")}>
             Өгүүллэгийн хуудас

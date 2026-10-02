@@ -29,7 +29,7 @@ export default async function AdminPayments({ searchParams }: { searchParams: Pr
 
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-2xl">Төлбөр</h1>
+      <h1 className="font-display text-2xl">Төлбөр</h1>
       <nav aria-label="Төлөв" className="flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <Link

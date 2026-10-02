@@ -26,11 +26,11 @@ export function StoryList({ stories, priority = 0 }: { stories: StoryCard[]; pri
           <Link href={`/s/${s.slug}`} className="group flex items-start gap-5">
             <Cover title={s.title} genre={s.genre_info?.art ?? "other"} src={s.cover_url} className="w-20 shrink-0 sm:w-24" priority={i < priority} />
             <div className="min-w-0 flex-1 pt-1">
-              <h3 className="font-serif text-lg font-semibold leading-snug text-ink group-hover:underline group-hover:underline-offset-4">
+              <h3 className="font-display text-lg font-semibold leading-snug text-ink group-hover:underline group-hover:underline-offset-4">
                 {s.title}
               </h3>
               <StoryMeta story={s} />
-              <p className="mt-1.5 line-clamp-3 font-serif text-sm leading-relaxed text-muted">{s.description}</p>
+              <p className="mt-1.5 line-clamp-3 text-sm leading-relaxed text-muted">{s.description}</p>
             </div>
           </Link>
         </li>

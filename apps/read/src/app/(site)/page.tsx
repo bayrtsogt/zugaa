@@ -18,7 +18,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-12">
       <header className="relative pr-20 pt-4">
-        <h1 className="font-serif text-[2.25rem] font-bold leading-[1.1] tracking-tight sm:text-5xl">
+        <h1 className="font-display text-[2.25rem] font-bold leading-[1.1] tracking-tight sm:text-5xl">
           Өнөөдөр юу
           <br />
           унших вэ?
@@ -38,7 +38,7 @@ export default async function HomePage() {
                 <Link href={`/s/${c.story.slug}/${c.chapter.number}`} className="group flex items-center gap-4">
                   <Cover title={c.story.title} genre={c.story.genre_info?.art ?? "other"} src={c.story.cover_url} className="w-12 shrink-0" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-serif text-lg font-semibold group-hover:underline group-hover:underline-offset-4">{c.story.title}</p>
+                    <p className="truncate font-display text-lg font-semibold group-hover:underline group-hover:underline-offset-4">{c.story.title}</p>
                     <p className="text-sm text-muted">
                       Бүлэг {c.chapter.number} · {c.chapter.title}
                     </p>
@@ -80,7 +80,7 @@ export default async function HomePage() {
               <li key={c.id}>
                 <Link href={`/s/${c.story.slug}/${c.number}`} className="group flex min-h-14 items-baseline justify-between gap-4 py-3">
                   <span className="min-w-0">
-                    <span className="block truncate font-serif group-hover:underline group-hover:underline-offset-4">
+                    <span className="block truncate font-display group-hover:underline group-hover:underline-offset-4">
                       {c.number}. {c.title}
                     </span>
                     <span className="block truncate text-sm text-muted">{c.story.title}</span>

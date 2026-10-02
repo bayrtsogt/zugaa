@@ -7,7 +7,7 @@ export default function DataDeletionPage() {
   const email = contactEmail();
   return (
     <article className="prose-read space-y-4 pb-8 text-base">
-      <h1 className="font-serif text-3xl font-bold tracking-tight">Мэдээлэл устгах заавар</h1>
+      <h1 className="font-display text-3xl font-bold tracking-tight">Мэдээлэл устгах заавар</h1>
       <p>Та Зугаа дахь бүртгэл болон түүнтэй холбоотой бүх мэдээллээ (уншсан түүх, худалдан авалт, профайл) устгуулж болно.</p>
       <ol className="list-decimal space-y-2 pl-5">
         <li>

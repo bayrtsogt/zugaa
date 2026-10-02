@@ -1,22 +1,22 @@
 import localFont from "next/font/local";
 
-// Custom subsets (Latin + Cyrillic + Ө ө Ү ү + ₮), built from Google Fonts with
-// the optical-size axis pinned. Verified glyph coverage; see DECISIONS.md.
-export const literata = localFont({
-  src: [
-    { path: "../fonts/literata.woff2", weight: "400 700", style: "normal" },
-    { path: "../fonts/literata-italic.woff2", weight: "400", style: "italic" },
-  ],
-  variable: "--font-literata",
+// Custom subsets (Latin + Cyrillic + Ө ө Ү ү + typographic punctuation), built from
+// Google Fonts with `text=` and the weight axis trimmed. Verified glyph coverage; see DECISIONS.md.
+export const adventPro = localFont({
+  src: [{ path: "../fonts/advent-pro.woff2", weight: "400 800", style: "normal" }],
+  variable: "--font-advent",
   display: "swap",
   preload: true,
-  fallback: ["PT Serif", "Georgia", "serif"],
-  adjustFontFallback: "Times New Roman",
+  fallback: ["Arial Narrow", "system-ui", "sans-serif"],
+  adjustFontFallback: "Arial",
 });
 
-export const inter = localFont({
-  src: [{ path: "../fonts/inter.woff2", weight: "400 600", style: "normal" }],
-  variable: "--font-inter",
+export const openSans = localFont({
+  src: [
+    { path: "../fonts/open-sans.woff2", weight: "400 700", style: "normal" },
+    { path: "../fonts/open-sans-italic.woff2", weight: "400 700", style: "italic" },
+  ],
+  variable: "--font-open-sans",
   display: "swap",
   preload: true,
   fallback: ["system-ui", "Segoe UI", "Arial", "sans-serif"],

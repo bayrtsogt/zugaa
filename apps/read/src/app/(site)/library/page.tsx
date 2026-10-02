@@ -23,7 +23,7 @@ export default async function LibraryPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-3xl font-bold tracking-tight">Номын сан</h1>
+      <h1 className="font-display text-3xl font-bold tracking-tight">Номын сан</h1>
 
       <form role="search" action="/library" className="relative">
         {genre ? <input type="hidden" name="genre" value={genre} /> : null}
