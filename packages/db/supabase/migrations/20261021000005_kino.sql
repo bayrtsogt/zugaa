@@ -5,6 +5,14 @@
 --   scope 'kino' (movies only), 'read' products give scope 'read'.
 -- * Extensions stack only on subscriptions of the same scope.
 -- * my_access_until(app) lets a client app ask "until when may I use <app>?".
+-- * KinoTube's movie passes are inserted here (once; later price changes are
+--   made in the table and are not overwritten).
+
+insert into public.products (code, kind, app, title, description, price_mnt, duration_days, sort_order) values
+  ('kino_1m',  'subscription', 'kino', '1 сарын кино эрх',  'Бүх кино 30 хоног',  9900,  30,  10),
+  ('kino_3m',  'subscription', 'kino', '3 сарын кино эрх',  'Бүх кино 90 хоног',  24900, 90,  20),
+  ('kino_12m', 'subscription', 'kino', '1 жилийн кино эрх', 'Бүх кино 365 хоног', 89000, 365, 30)
+on conflict (code) do nothing;
 
 create or replace function public.approve_payment(
   p_request_id uuid,

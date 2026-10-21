@@ -15,13 +15,14 @@ export const serverEnv = {
   telegramWebhookSecret: () => process.env.TELEGRAM_WEBHOOK_SECRET ?? "",
   /** Origins of other Зугаа apps (e.g. KinoTube) allowed to call /api/payments. */
   corsOrigins: () =>
-    (process.env.CORS_ORIGINS ?? "")
+    (process.env.CORS_ORIGINS || "https://kinotube.vercel.app")
       .split(",")
       .map((s) => s.trim().replace(/\/+$/, ""))
       .filter(Boolean),
+  // The receiving account is shown to every payer; the env vars only override it.
   bank: () => ({
-    name: process.env.BANK_NAME ?? "",
-    accountNumber: process.env.BANK_ACCOUNT_NUMBER ?? "",
-    accountHolder: process.env.BANK_ACCOUNT_HOLDER ?? "",
+    name: process.env.BANK_NAME || "Хаан банк",
+    accountNumber: process.env.BANK_ACCOUNT_NUMBER || "600005005303317077",
+    accountHolder: process.env.BANK_ACCOUNT_HOLDER || "Батмэнд Хишигцогзол",
   }),
 };
