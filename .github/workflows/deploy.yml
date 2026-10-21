@@ -15,7 +15,7 @@
 #   NEXT_PUBLIC_SUPABASE_ANON_KEY  anon key (public by design)
 #   CLOUDFLARE_ACCOUNT_ID      Cloudflare dashboard → Workers & Pages → right sidebar
 #   APP_URL                    e.g. https://zugaa-read.<your-subdomain>.workers.dev
-#   BANK_NAME, BANK_ACCOUNT_NUMBER, BANK_ACCOUNT_HOLDER   (optional: override the account in server-env.ts)
+#   BANK_NAME, BANK_ACCOUNT_NUMBER, BANK_ACCOUNT_HOLDER
 #   TELEGRAM_ADMIN_CHAT_ID, ADMIN_TELEGRAM_IDS   (optional until you set up the bot)
 #   CORS_ORIGINS               KinoTube's origin(s), comma separated (default https://kinotube.vercel.app)
 

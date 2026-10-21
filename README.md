@@ -105,7 +105,7 @@ request and shown to the user.
 | `TELEGRAM_ADMIN_CHAT_ID` | var¹ | group/chat that receives payment messages |
 | `ADMIN_TELEGRAM_IDS` | var | comma-separated user ids allowed to approve |
 | `TELEGRAM_WEBHOOK_SECRET` | secret | checked against `X-Telegram-Bot-Api-Secret-Token` |
-| `BANK_NAME`, `BANK_ACCOUNT_NUMBER`, `BANK_ACCOUNT_HOLDER` | var | optional; the account in `server-env.ts` is used when unset |
+| `BANK_NAME`, `BANK_ACCOUNT_NUMBER`, `BANK_ACCOUNT_HOLDER` | var | shown on the payment screen |
 | `APP_URL` | var | public origin, no trailing slash |
 | `CORS_ORIGINS` | var | origins of other apps calling `/api/payments`, comma separated (default `https://kinotube.vercel.app`) |
 | `TELEGRAM_API_BASE` | — | tests only (points at the mock Bot API) |
@@ -163,8 +163,8 @@ payment screen flips (Realtime, 10 s polling fallback).
 
 - KinoTube reads products, its own payment requests and `my_access_until('kino')` directly with the anon key
   (RLS). It cannot send the Telegram message itself (no bot token in a browser), so "Гүйлгээ хийсэн" calls
-  `POST /api/payments/<id>/submit` here with `Authorization: Bearer <access token>`; bank details come from
-  `GET /api/payments/bank`. Put KinoTube's origin in `CORS_ORIGINS`.
+  `POST /api/payments/<id>/submit` here with `Authorization: Bearer <access token>`. KinoTube shows its own
+  receiving bank account.
 - The movie passes (`kino_1m`, `kino_3m`, `kino_12m`) are inserted by migration `20261021000005_kino.sql`; change
   prices in the `products` table afterwards.
 - `CORS_ORIGINS` defaults to `https://kinotube.vercel.app`.
