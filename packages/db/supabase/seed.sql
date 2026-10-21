@@ -10,6 +10,12 @@ insert into public.products (code, kind, app, title, description, price_mnt, coi
   ('sub_week',   'subscription', 'all', '7 хоногийн эрх',    'Бүх бүлэг 7 хоног хязгааргүй',               6000,  null, 7,    40),
   ('sub_month',  'subscription', 'all', 'Сарын эрх',         'Бүх бүлэг 30 хоног хязгааргүй',              20000, null, 30,   50);
 
+-- KinoTube (app 'kino'): movie passes, scope 'kino'.
+insert into public.products (code, kind, app, title, description, price_mnt, coins, duration_days, sort_order) values
+  ('kino_1m',  'subscription', 'kino', '1 сарын кино эрх',  'Бүх кино 30 хоног',  9900,  null, 30,  10),
+  ('kino_3m',  'subscription', 'kino', '3 сарын кино эрх',  'Бүх кино 90 хоног',  24900, null, 90,  20),
+  ('kino_12m', 'subscription', 'kino', '1 жилийн кино эрх', 'Бүх кино 365 хоног', 89000, null, 365, 30);
+
 -------------------------------------------------------------------------------
 -- Story 1: linear horror, wait-free every 24 h
 -------------------------------------------------------------------------------

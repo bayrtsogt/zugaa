@@ -40,6 +40,13 @@ Where the spec was ambiguous I chose the simplest option and recorded it here.
 - **Monthly nudge** uses the Asia/Ulaanbaatar calendar month and counts coins spent on unlocks × 10₮. The monthly
   price comes from the active product with code `sub_month`. Hidden while a subscription is active.
 - **Ref codes** are `ZG-` + 4 digits; if the 4-digit space becomes crowded the generator widens to 5+ digits.
+- **Subscription scope = the product's `app`** (from the KinoTube migration). Before, `approve_payment` always
+  wrote scope `'all'`; now a `kino` product gives scope `kino`, `all` products still give `all`. Passes stack only
+  on passes of the same scope.
+- **`my_access_until(app)` returns the end of the stacked chain**, not just the running segment: a 1-month pass
+  plus a 3-month pass bought together shows 120 days, not 30.
+- **KinoTube submits through this app** (`POST /api/payments/<id>/submit`, bearer token, CORS allow-list) so the
+  bot token and service-role key stay on one server and both apps send the same Telegram message.
 
 ## Access / security
 

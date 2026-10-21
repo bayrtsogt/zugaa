@@ -106,13 +106,20 @@ export type PaymentMessageInput = {
   refCode: string;
   email: string | null;
   productTitle: string;
+  /** products.app; app-specific products name their app in the message. */
+  productApp?: string;
   amountMnt: number;
   submittedAt: string | Date;
 };
 
+/** Apps with their own products. 'all' products (coins, shared passes) name none. */
+export const APP_NAMES: Record<string, string> = { read: "Унших", kino: "KinoTube" };
+
 export function paymentRequestMessage(p: PaymentMessageInput): string {
+  const app = p.productApp ? APP_NAMES[p.productApp] : undefined;
   return [
     `Шинэ төлбөр — ${p.refCode}`,
+    ...(app ? [`Апп: ${app}`] : []),
     `Хэрэглэгч: ${p.email ?? "—"}`,
     `Бүтээгдэхүүн: ${p.productTitle}`,
     `Дүн: ${formatMnt(p.amountMnt)}`,

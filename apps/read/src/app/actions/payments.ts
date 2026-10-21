@@ -1,9 +1,8 @@
 "use server";
 import { redirect } from "next/navigation";
 import { safeNextPath } from "@zugaa/auth";
-import { createPaymentRequest, submitPaymentRequest, walletErrorText } from "@zugaa/wallet";
-import { allow } from "@/lib/rate-limit";
-import { notifyPaymentSubmitted } from "@/lib/telegram";
+import { createPaymentRequest, walletErrorText } from "@zugaa/wallet";
+import { submitAndNotify, type SubmitResult } from "@/lib/payments";
 import { createClient } from "@/lib/supabase/server";
 import { getUser, loginHref } from "@/lib/auth";
 
@@ -25,25 +24,13 @@ export async function startPurchase(_prev: PurchaseState, form: FormData): Promi
   redirect(`/pay/${id}${next ? `?next=${encodeURIComponent(next)}` : ""}`);
 }
 
-export type SubmitResult = { status?: string; error?: string };
+export type { SubmitResult } from "@/lib/payments";
 
 /** "Гүйлгээ хийсэн": created → submitted, then notify the admin on Telegram. */
 export async function submitPayment(requestId: string): Promise<SubmitResult> {
   const user = await getUser();
   if (!user) return { error: "Нэвтэрнэ үү." };
-  if (!(await allow(`submit:${user.id}`, 10, 600))) {
-    return { error: "Хэт олон оролдлого. Түр хүлээгээд дахин оролдоно уу." };
-  }
-  const supabase = await createClient();
-  try {
-    const res = await submitPaymentRequest(supabase, requestId);
-    if (res.needs_notify) {
-      await notifyPaymentSubmitted(requestId).catch((e) => console.error("telegram notify", e));
-    }
-    return { status: res.status };
-  } catch (e) {
-    return { error: walletErrorText(e) };
-  }
+  return submitAndNotify(await createClient(), user.id, requestId);
 }
 
 /** Polling fallback for the pending screen (RLS: own requests only). */

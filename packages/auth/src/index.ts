@@ -47,11 +47,22 @@ export function createServiceSupabase(url: string, serviceRoleKey: string): Zuga
   });
 }
 
+/**
+ * Client acting as the holder of a bearer access token (RLS applies). For
+ * cross-origin apps (KinoTube) that keep their session in their own storage.
+ */
+export function createTokenSupabase(config: SupabasePublicConfig, accessToken: string): ZugaaClient {
+  return createClient<Database>(config.url, config.anonKey, {
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+}
+
 export type SessionUser = { id: string; email: string | null };
 
-/** Verified current user (JWT signature checked), or null. */
-export async function getSessionUser(client: ZugaaClient): Promise<SessionUser | null> {
-  const { data, error } = await client.auth.getClaims();
+/** Verified current user (JWT signature checked), or null. Pass `accessToken` for bearer clients. */
+export async function getSessionUser(client: ZugaaClient, accessToken?: string): Promise<SessionUser | null> {
+  const { data, error } = await client.auth.getClaims(accessToken);
   if (error || !data?.claims?.sub) return null;
   const claims = data.claims as { sub: string; email?: string };
   return { id: claims.sub, email: claims.email ?? null };

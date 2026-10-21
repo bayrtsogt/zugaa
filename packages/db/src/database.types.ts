@@ -673,6 +673,7 @@ export type Database = {
         }[];
       };
       has_access: { Args: { p_chapter_id: string; p_user: string }; Returns: boolean };
+      my_access_until: { Args: { p_app: string }; Returns: string };
       my_wallet_summary: { Args: Record<PropertyKey, never>; Returns: Json };
       reject_payment: {
         Args: { p_admin_telegram_id?: number; p_reason?: string; p_request_id: string };

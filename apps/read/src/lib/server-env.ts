@@ -13,6 +13,12 @@ export const serverEnv = {
   telegramAdminChatId: () => process.env.TELEGRAM_ADMIN_CHAT_ID ?? "",
   adminTelegramIds: () => process.env.ADMIN_TELEGRAM_IDS ?? "",
   telegramWebhookSecret: () => process.env.TELEGRAM_WEBHOOK_SECRET ?? "",
+  /** Origins of other Зугаа apps (e.g. KinoTube) allowed to call /api/payments. */
+  corsOrigins: () =>
+    (process.env.CORS_ORIGINS ?? "")
+      .split(",")
+      .map((s) => s.trim().replace(/\/+$/, ""))
+      .filter(Boolean),
   bank: () => ({
     name: process.env.BANK_NAME ?? "",
     accountNumber: process.env.BANK_ACCOUNT_NUMBER ?? "",

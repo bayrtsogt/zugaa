@@ -4,7 +4,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(75);
+select plan(84);
 
 select is(
   (select count(*) from pg_tables where schemaname = 'public' and not rowsecurity)::int, 0,
@@ -210,6 +210,35 @@ select is((public.approve_payment((select id from pr_story)) ->> 'status'), 'app
 
 select pg_temp.as_postgres();
 select is((select count(*) from public.unlocks where user_id = 'aaaaaaaa-0000-4000-8000-000000000002' and story_id = (select mystery from ids) and chapter_id is null)::int, 1, 'story purchase unlocks whole story');
+
+-------------------------------------------------------------------------------
+-- 10. KinoTube: 'kino' subscriptions cover movies only; 'all' covers every app
+-------------------------------------------------------------------------------
+insert into auth.users (id, email, aud, role) values
+  ('aaaaaaaa-0000-4000-8000-000000000005', 'viewer@test.mn', 'authenticated', 'authenticated');
+select pg_temp.as_user('aaaaaaaa-0000-4000-8000-000000000005');
+select is(public.my_access_until('kino'), null, 'no kino access before paying');
+create temp table pr_kino as select * from public.create_payment_request('kino_1m');
+create temp table pr_kino3 as select * from public.create_payment_request('kino_3m');
+grant select on pr_kino, pr_kino3 to service_role;
+select is((select amount_mnt from pr_kino), 9900, 'kino price taken from products');
+select public.submit_payment_request((select id from pr_kino));
+select public.submit_payment_request((select id from pr_kino3));
+
+select pg_temp.as_service();
+select is((public.approve_payment((select id from pr_kino), 7) ->> 'status'), 'approved', 'approve kino month');
+select is((public.approve_payment((select id from pr_kino3), 7) ->> 'status'), 'approved', 'approve kino 3 months');
+select is(
+  (select array_agg(distinct scope) from public.subscriptions where user_id = 'aaaaaaaa-0000-4000-8000-000000000005'),
+  array['kino'], 'kino product grants scope kino');
+select is(
+  (select max(expires_at) - min(starts_at) from public.subscriptions where user_id = 'aaaaaaaa-0000-4000-8000-000000000005')::text,
+  '120 days', 'kino passes stack (30 + 90 days)');
+
+select pg_temp.as_user('aaaaaaaa-0000-4000-8000-000000000005');
+select ok(public.my_access_until('kino') > now() + interval '119 days', 'my_access_until(kino) after approval');
+select is(public.my_access_until('read'), null, 'kino pass does not open stories');
+select is((select locked from public.get_chapter((select locked_ch2 from ids))), true, 'kino subscriber: chapter still locked');
 
 select * from finish();
 rollback;

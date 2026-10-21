@@ -6,7 +6,7 @@ Run on 2026-10-01 against the local Supabase stack (CLI 2.119, Postgres 17) and 
 
 ## Database (pgTAP) — `pnpm db:test`
 
-75 assertions, all passing (`packages/db/supabase/tests/access_and_payments.test.sql`):
+84 assertions, all passing (`packages/db/supabase/tests/access_and_payments.test.sql`):
 
 - RLS enabled on every public table; users cannot write wallets, transactions, unlocks, subscriptions, payment
   requests, or set `is_admin`; they see only their own profile.
@@ -23,6 +23,10 @@ Run on 2026-10-01 against the local Supabase stack (CLI 2.119, Postgres 17) and 
   rejected requests cannot be approved; admin session can approve; story purchase unlocks the whole story; state
   changes are audited.
 - **Subscription expiry removes access** (locked again, preview only).
+- KinoTube (2026-10-21): `kino` products price from `products`, grant scope `kino`, stack (30 + 90 = 120 days),
+  `my_access_until('kino')` returns the chain end; a `kino` pass does not open stories. This run used plain
+  Postgres 16 with a minimal `auth` schema and a pgTAP-compatible shim (Docker images could not be pulled); rerun
+  `pnpm db:test` on the Supabase stack.
 
 ## End to end — `pnpm e2e`
 

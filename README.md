@@ -107,6 +107,7 @@ request and shown to the user.
 | `TELEGRAM_WEBHOOK_SECRET` | secret | checked against `X-Telegram-Bot-Api-Secret-Token` |
 | `BANK_NAME`, `BANK_ACCOUNT_NUMBER`, `BANK_ACCOUNT_HOLDER` | var | shown on the payment screen |
 | `APP_URL` | var | public origin, no trailing slash |
+| `CORS_ORIGINS` | var | origins of other apps calling `/api/payments` (KinoTube), comma separated |
 | `TELEGRAM_API_BASE` | — | tests only (points at the mock Bot API) |
 
 ¹ "var" = not secret, but the deploy workflow still uploads every runtime value as a Worker secret so nothing
@@ -143,7 +144,7 @@ domain in the Cloudflare dashboard, set `APP_URL` to it, then run `telegram:set-
 ## Tests
 
 ```bash
-pnpm db:test          # 75 pgTAP assertions: RLS, content protection, idempotency, expiry, 18+ gate
+pnpm db:test          # 84 pgTAP assertions: RLS, content protection, idempotency, expiry, 18+ gate, app scopes
 node scripts/e2e/mock-telegram.mjs &            # mock Bot API on :8099
 # start the app with TELEGRAM_API_BASE=http://127.0.0.1:8099 (see .env.example), then:
 pnpm e2e              # reader, payments + Telegram webhook, admin, leak audit, concurrency
@@ -151,6 +152,27 @@ pnpm screens          # every screen at 360/1280 px in all three themes
 ```
 
 See `docs/VERIFICATION.md` for the latest results, Lighthouse scores and screenshot contact sheets.
+
+## KinoTube (movies)
+
+[KinoTube](https://github.com/tsoozo/kinotube) is a Vite single-page app that uses this Supabase project for
+accounts and payments. Its users are Зугаа users (email code), and it pays exactly like the reader: products with
+`app = 'kino'` → `ZG-1234` reference → bank transfer → "Гүйлгээ хийсэн" → the same Telegram message (with
+`Апп: KinoTube`) and ✅/❌ buttons → `approve_payment` grants a `kino`-scoped subscription → KinoTube's open
+payment screen flips (Realtime, 10 s polling fallback).
+
+- KinoTube reads products, its own payment requests and `my_access_until('kino')` directly with the anon key
+  (RLS). It cannot send the Telegram message itself (no bot token in a browser), so "Гүйлгээ хийсэн" calls
+  `POST /api/payments/<id>/submit` here with `Authorization: Bearer <access token>`; bank details come from
+  `GET /api/payments/bank`. Put KinoTube's origin in `CORS_ORIGINS`.
+- Movie passes (`seed.sql` has them for local development). In production insert them once:
+  ```sql
+  insert into public.products (code, kind, app, title, description, price_mnt, duration_days, sort_order) values
+    ('kino_1m',  'subscription', 'kino', '1 сарын кино эрх',  'Бүх кино 30 хоног',  9900,  30,  10),
+    ('kino_3m',  'subscription', 'kino', '3 сарын кино эрх',  'Бүх кино 90 хоног',  24900, 90,  20),
+    ('kino_12m', 'subscription', 'kino', '1 жилийн кино эрх', 'Бүх кино 365 хоног', 89000, 365, 30);
+  ```
+- A `kino` pass opens movies only. The reader's existing passes have `app = 'all'`, so they open movies too.
 
 ## Adding another mini app
 

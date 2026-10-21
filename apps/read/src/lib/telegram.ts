@@ -28,7 +28,7 @@ export async function loadRequestInfo(requestId: string): Promise<RequestInfo | 
   const db = createServiceClient();
   const { data: r } = await db
     .from("payment_requests")
-    .select("id, user_id, ref_code, amount_mnt, status, submitted_at, created_at, decided_at, telegram_chat_id, telegram_message_id, products(title)")
+    .select("id, user_id, ref_code, amount_mnt, status, submitted_at, created_at, decided_at, telegram_chat_id, telegram_message_id, products(title, app)")
     .eq("id", requestId)
     .maybeSingle();
   if (!r) return null;
@@ -43,6 +43,7 @@ export async function loadRequestInfo(requestId: string): Promise<RequestInfo | 
       refCode: r.ref_code,
       email: u.user?.email ?? null,
       productTitle: r.products?.title ?? "—",
+      productApp: r.products?.app,
       amountMnt: r.amount_mnt,
       submittedAt: r.submitted_at ?? r.created_at,
     },
